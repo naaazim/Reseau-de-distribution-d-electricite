@@ -2,6 +2,7 @@ package com.example;
 
 import java.util.Scanner;
 import com.example.reseau.*;
+
 public class Main {
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
@@ -43,29 +44,22 @@ public class Main {
                 case 3 -> { // Ajouter une connexion
                     System.out.println("Entrez la maison et le générateur à connecter (ex: M1 G1 ou G1 M1) : ");
                     String ligne = scanner.nextLine().trim();
-                    String[] parties = ligne.split("\\s+");
+                    String[] parties = ligne.split(" ");
 
                     if (parties.length != 2) {
                         System.out.println("Format invalide. Exemple attendu : M1 G1");
                         break;
                     }
 
-                    // On identifie qui est qui (ordre libre)
-                    Maison maison = null;
-                    Generateur generateur = null;
+                    // Accès direct via les HashMaps
+                    Maison maison = reseau.getEnsembleMaisons().get(parties[0]);
+                    Generateur generateur = reseau.getEnsembleGenerateurs().get(parties[1]);
 
-                    for (Maison m : reseau.getEnsembleMaisons()) {
-                        if (m.getNom().equalsIgnoreCase(parties[0]) || m.getNom().equalsIgnoreCase(parties[1])) {
-                            maison = m;
-                            break;
-                        }
-                    }
-
-                    for (Generateur g : reseau.getEnsembleGenerateurs()) {
-                        if (g.getNom().equalsIgnoreCase(parties[0]) || g.getNom().equalsIgnoreCase(parties[1])) {
-                            generateur = g;
-                            break;
-                        }
+                    // Si l’utilisateur a inversé l’ordre (G1 M1)
+                    if (maison == null && generateur == null) {
+                        // on inverse
+                        maison = reseau.getEnsembleMaisons().get(parties[1]);
+                        generateur = reseau.getEnsembleGenerateurs().get(parties[0]);
                     }
 
                     if (maison == null || generateur == null) {
@@ -76,15 +70,13 @@ public class Main {
                 }
 
                 case 4 -> { // Afficher le réseau
-                    System.out.println("\n===== AFFICHAGE DU RÉSEAU =====\n");
+                    System.out.println("\n===== AFFICHAGE DU RÉSEAU =====");
                     reseau.afficherGenerateurs();
                     reseau.afficherMaisons();
                     reseau.afficherConnexions();
                 }
 
-                case 5 -> {
-                    System.out.println("👋 Fin du programme. À bientôt !");
-                }
+                case 5 -> System.out.println("👋 Fin du programme. À bientôt !");
 
                 default -> System.out.println("Choix invalide !");
             }
