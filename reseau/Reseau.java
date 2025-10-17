@@ -1,165 +1,191 @@
 package com.example.reseau;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class Reseau {
-    // Utilisation de HashMap pour un accès direct en O(1)
-    private Map<String, Maison> ensembleMaisons;
-    private Map<String, Generateur> ensembleGenerateurs;
-    private Map<String, Connexion> ensembleConnexions; // clé = nom de la maison (unique)
-
-    private int capaciteTotale;       // somme des capacités de tous les générateurs
-    private int consommationTotale;   // somme des consommations de toutes les maisons
+    private Map<Generateur, List<Maison>> connexions; // Générateur → liste de maisons
+    private List<Maison> maisonsNonConnectees;        // Maisons créées mais pas encore reliées
+    private int capaciteTotale;
+    private int consommationTotale;
 
     public Reseau() {
-        ensembleMaisons = new HashMap<>();
-        ensembleGenerateurs = new HashMap<>();
-        ensembleConnexions = new HashMap<>();
+        connexions = new HashMap<>();
+        maisonsNonConnectees = new ArrayList<>();
         capaciteTotale = 0;
         consommationTotale = 0;
     }
 
-    // --- Getters ---
-    public Map<String, Maison> getEnsembleMaisons() {
-        return ensembleMaisons;
-    }
+    // --- Ajouter ou mettre à jour un générateur ---
+    public void ajouterGenerateur(Generateur g) {
+        for (Generateur existant : connexions.keySet()) {
+            if (existant.getNom().equalsIgnoreCase(g.getNom())) {
+                System.out.println("Le générateur " + g.getNom() + " existe déjà.");
 
-    public Map<String, Generateur> getEnsembleGenerateurs() {
-        return ensembleGenerateurs;
-    }
+                int ancienneCapacite = existant.getCapacite();
+                int nouvelleCapacite = g.getCapacite();
+                int nouvelleCapaciteTotale = capaciteTotale - ancienneCapacite + nouvelleCapacite;
 
-    public Map<String, Connexion> getEnsembleConnexions() {
-        return ensembleConnexions;
-    }
+                if (nouvelleCapaciteTotale < consommationTotale) {
+                    System.out.println("Mise à jour impossible : la capacité totale (" + nouvelleCapaciteTotale +
+                            " kW) serait inférieure à la consommation actuelle (" + consommationTotale + " kW).");
+                    return;
+                }
 
-    public int getCapaciteTotale() {
-        return capaciteTotale;
-    }
-
-    public int getConsommationTotale() {
-        return consommationTotale;
-    }
-
-    // --- Ajouter une maison au réseau ---
-    public void ajouterMaison(Maison maison) {
-        String nom = maison.getNom();
-        int consoMaison = maison.getTypeConso().getConsommation();
-
-        // Si la maison existe déjà → mise à jour
-        if (ensembleMaisons.containsKey(nom)) {
-            Maison m = ensembleMaisons.get(nom);
-            System.out.println("La maison " + nom + " existe déjà.");
-
-            // Si le type de consommation change → on ajuste la consommation totale
-            if (m.getTypeConso() != maison.getTypeConso()) {
-                consommationTotale -= m.getTypeConso().getConsommation();
-                consommationTotale += consoMaison;
-                m.setTypeConso(maison.getTypeConso());
-                System.out.println("Mise à jour de sa consommation. Nouvelle consommation totale : " + consommationTotale + " kW.");
+                existant.setCapacite(nouvelleCapacite);
+                capaciteTotale = nouvelleCapaciteTotale;
+                System.out.println("Capacité du générateur " + existant.getNom() +
+                        " mise à jour à " + nouvelleCapacite + " kW.");
+                System.out.println("Capacité totale du réseau : " + capaciteTotale + " kW.");
+                return;
             }
-            return;
         }
 
-        // Vérifie la contrainte de capacité
-        if (consommationTotale + consoMaison > capaciteTotale) {
-            System.out.println("\nImpossible d’ajouter " + nom + " (" + consoMaison + " kW).");
-            System.out.println("→ La consommation totale dépasserait la capacité du réseau (" + capaciteTotale + " kW).");
-            return;
-        }
-
-        // Ajout de la maison
-        ensembleMaisons.put(nom, maison);
-        consommationTotale += consoMaison;
-        System.out.println("Maison ajoutée : " + maison + " | Consommation totale : " + consommationTotale + " kW");
+        // Ajout d’un nouveau générateur
+        connexions.put(g, new ArrayList<>());
+        capaciteTotale += g.getCapacite();
+        System.out.println("Générateur ajouté : " + g + " | Capacité totale du réseau : " + capaciteTotale + " kW");
     }
 
-    // --- Ajouter un générateur au réseau ---
-    public void ajouterGenerateur(Generateur generateur) {
-        String nom = generateur.getNom();
-        int capacite = generateur.getCapacite();
+    // --- Ajouter ou mettre à jour une maison (non connectée) ---
+    public void ajouterMaison(Maison m) {
+        // Vérifie si la maison est déjà connectée
+        for (List<Maison> liste : connexions.values()) {
+            for (Maison existante : liste) {
+                if (existante.getNom().equalsIgnoreCase(m.getNom())) {
+                    System.out.println("La maison " + m.getNom() + " existe déjà et est connectée.");
 
-        // Si le générateur existe déjà → mise à jour
-        if (ensembleGenerateurs.containsKey(nom)) {
-            Generateur g = ensembleGenerateurs.get(nom);
-            System.out.println("Le générateur " + nom + " existe déjà.");
+                    int ancienneConso = existante.getTypeConso().getConsommation();
+                    int nouvelleConso = m.getTypeConso().getConsommation();
+                    int nouvelleTotale = consommationTotale - ancienneConso + nouvelleConso;
 
-            if (g.getCapacite() != capacite) {
-                capaciteTotale -= g.getCapacite();
-                g.setCapacite(capacite);
-                capaciteTotale += capacite;
-                System.out.println("Mise à jour de sa capacité. Nouvelle capacité totale : " + capaciteTotale + " kW.");
+                    if (nouvelleTotale > capaciteTotale) {
+                        System.out.println("Mise à jour impossible : la consommation totale (" + nouvelleTotale +
+                                " kW) dépasserait la capacité du réseau (" + capaciteTotale + " kW).");
+                        return;
+                    }
+
+                    existante.setTypeConso(m.getTypeConso());
+                    consommationTotale = nouvelleTotale;
+                    System.out.println("Mise à jour de la consommation de " + m.getNom() +
+                            ". Nouvelle consommation totale : " + consommationTotale + " kW.");
+                    return;
+                }
             }
-            return;
         }
 
-        // Sinon ajout simple
-        ensembleGenerateurs.put(nom, generateur);
-        capaciteTotale += capacite;
-        System.out.println("Générateur ajouté : " + generateur + " | Capacité totale du réseau : " + capaciteTotale + " kW");
+        // Vérifie si elle existe parmi les maisons non connectées
+        for (Maison existante : maisonsNonConnectees) {
+            if (existante.getNom().equalsIgnoreCase(m.getNom())) {
+                System.out.println("La maison " + m.getNom() + " existe déjà (non connectée).");
+                existante.setTypeConso(m.getTypeConso());
+                System.out.println("Type de consommation mis à jour : " + m.getTypeConso());
+                return;
+            }
+        }
+
+        // Sinon, nouvelle maison
+        maisonsNonConnectees.add(m);
+        System.out.println("Maison ajoutée : " + m + " (non connectée)");
     }
 
-    // --- Ajouter une connexion au réseau ---
-    public void ajouterConnexion(Connexion connexion) {
-        String nomMaison = connexion.getMaison().getNom();
-        String nomGenerateur = connexion.getGenerateur().getNom();
-
-        // Vérifie existence des entités
-        if (!ensembleMaisons.containsKey(nomMaison)) {
-            System.out.println("La maison " + nomMaison + " n'existe pas dans le réseau.");
+    // --- Ajouter une connexion (relier une maison à un générateur) ---
+    public void ajouterConnexion(String nomMaison, String nomGenerateur) {
+        Generateur g = getGenerateurParNom(nomGenerateur);
+        if (g == null) {
+            System.out.println("Le générateur " + nomGenerateur + " n'existe pas.");
             return;
         }
-        if (!ensembleGenerateurs.containsKey(nomGenerateur)) {
-            System.out.println("Le générateur " + nomGenerateur + " n'existe pas dans le réseau.");
-            return;
+
+        Maison m = getMaisonParNom(nomMaison);
+        if (m == null) {
+            for (Maison tmp : maisonsNonConnectees) {
+                if (tmp.getNom().equalsIgnoreCase(nomMaison)) {
+                    m = tmp;
+                    break;
+                }
+            }
+            if (m == null) {
+                System.out.println("La maison " + nomMaison + " n'existe pas. Veuillez d'abord l'ajouter.");
+                return;
+            }
         }
 
         // Vérifie si la maison est déjà connectée
-        if (ensembleConnexions.containsKey(nomMaison)) {
-            System.out.println("La maison " + nomMaison + " est déjà connectée à un générateur.");
+        for (List<Maison> liste : connexions.values()) {
+            if (liste.contains(m)) {
+                System.out.println("La maison " + nomMaison + " est déjà connectée à un générateur.");
+                return;
+            }
+        }
+
+        int nouvelleConso = consommationTotale + m.getTypeConso().getConsommation();
+        if (nouvelleConso > capaciteTotale) {
+            System.out.println("Connexion impossible : la consommation totale (" + nouvelleConso +
+                    " kW) dépasserait la capacité totale (" + capaciteTotale + " kW).");
             return;
         }
 
-        // Ajout de la connexion
-        ensembleConnexions.put(nomMaison, connexion);
-        System.out.println("Connexion ajoutée : " + nomMaison + " <-> " + nomGenerateur);
+        connexions.get(g).add(m);
+        maisonsNonConnectees.remove(m);
+        consommationTotale = nouvelleConso;
+        System.out.println("Connexion ajoutée : " + g.getNom() + " → " + m.getNom() +
+                " | Consommation totale : " + consommationTotale + " kW");
     }
 
-    // --- Affichage des maisons ---
-    public void afficherMaisons() {
-        System.out.println("\n==== Ensemble des maisons ====");
-        if (ensembleMaisons.isEmpty()) {
-            System.out.println("Aucune maison dans le réseau.");
-            return;
-        }
-        for (Maison m : ensembleMaisons.values()) {
-            m.afficher();
-        }
-        System.out.println("Consommation totale : " + consommationTotale + " kW");
-    }
+    // --- Afficher le réseau complet ---
+    public void afficherReseau() {
+        System.out.println("\n===== RÉSEAU ÉLECTRIQUE =====");
 
-    // --- Affichage des générateurs ---
-    public void afficherGenerateurs() {
-        System.out.println("\n==== Ensemble des générateurs ====");
-        if (ensembleGenerateurs.isEmpty()) {
+        if (connexions.isEmpty()) {
             System.out.println("Aucun générateur dans le réseau.");
             return;
         }
-        for (Generateur g : ensembleGenerateurs.values()) {
-            g.afficher();
+
+        for (Generateur g : connexions.keySet()) {
+            List<Maison> maisons = connexions.get(g);
+            System.out.println("\n" + g.getNom() + " (" + g.getCapacite() + " kW) alimente :");
+
+            if (maisons.isEmpty()) {
+                System.out.println("   Aucune maison connectée.");
+            } else {
+                for (Maison m : maisons) {
+                    System.out.println("   - " + m.getNom() + " (" + m.getTypeConso() + " - " +
+                            m.getTypeConso().getConsommation() + " kW)");
+                }
+            }
         }
-        System.out.println("Capacité totale du réseau : " + capaciteTotale + " kW");
+
+        if (!maisonsNonConnectees.isEmpty()) {
+            System.out.println("\nMaisons non connectées :");
+            for (Maison m : maisonsNonConnectees) {
+                System.out.println("   - " + m.getNom() + " (" + m.getTypeConso() + ")");
+            }
+        }
+
+        System.out.println("\nCapacité totale : " + capaciteTotale + " kW | Consommation totale : " + consommationTotale + " kW");
     }
 
-    // --- Affichage des connexions ---
-    public void afficherConnexions() {
-        System.out.println("\n==== Ensemble des connexions ====");
-        if (ensembleConnexions.isEmpty()) {
-            System.out.println("Aucune connexion dans le réseau.");
-            return;
+    // --- Méthodes utilitaires ---
+    public boolean estVide() {
+        return connexions.isEmpty();
+    }
+
+    public Generateur getGenerateurParNom(String nom) {
+        for (Generateur g : connexions.keySet()) {
+            if (g.getNom().equalsIgnoreCase(nom)) return g;
         }
-        for (Connexion c : ensembleConnexions.values()) {
-            c.afficher();
+        return null;
+    }
+
+    public Maison getMaisonParNom(String nom) {
+        for (List<Maison> liste : connexions.values()) {
+            for (Maison m : liste) {
+                if (m.getNom().equalsIgnoreCase(nom)) return m;
+            }
         }
+        for (Maison m : maisonsNonConnectees) {
+            if (m.getNom().equalsIgnoreCase(nom)) return m;
+        }
+        return null;
     }
 }

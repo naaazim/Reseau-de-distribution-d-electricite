@@ -7,28 +7,19 @@ public class Main {
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
         Reseau reseau = new Reseau();
-
         MaisonFactory maisonFactory = new MaisonFactory();
         GenerateurFactory generateurFactory = new GenerateurFactory();
 
-        int choix; 
+        int choix;
 
         do {
-            // Vérifie si le réseau contient au moins une maison et un générateur
-            if (reseau.getEnsembleGenerateurs().isEmpty() || reseau.getEnsembleMaisons().isEmpty()) {
+            // --- Si le réseau est vide (aucun générateur) ---
+            if (reseau.estVide()) {
+                System.err.println("\nVotre réseau est vide : ajoutez au moins un générateur pour commencer.");
 
-                if (reseau.getEnsembleGenerateurs().isEmpty() && reseau.getEnsembleMaisons().isEmpty()) {
-                    System.err.println("\nVotre réseau est vide : ajoutez au moins un générateur et une maison.");
-                } else if (reseau.getEnsembleGenerateurs().isEmpty()) {
-                    System.err.println("\nIl manque un générateur dans le réseau. Ajoutez-en un avant de continuer.");
-                } else if (reseau.getEnsembleMaisons().isEmpty()) {
-                    System.err.println("\nIl manque une maison dans le réseau. Ajoutez-en une avant de continuer.");
-                }
-
-                // Menu réduit tant que le réseau n'est pas valide
                 System.out.println("\n===== MENU INITIAL =====");
                 System.out.println("1) Ajouter un générateur");
-                System.out.println("2) Ajouter une maison");
+                System.out.println("2) Quitter");
                 System.out.print("Votre choix : ");
 
                 while (!scanner.hasNextInt()) {
@@ -41,17 +32,20 @@ public class Main {
                 switch (choix) {
                     case 1 -> {
                         Generateur g = generateurFactory.creerGenerateur();
-                        if (g != null) reseau.ajouterGenerateur(g);
+                        if (g != null)
+                            reseau.ajouterGenerateur(g);
                     }
                     case 2 -> {
-                        Maison m = maisonFactory.creerMaison();
-                        if (m != null) reseau.ajouterMaison(m);
+                        System.out.println("Fin du programme.");
+                        scanner.close();
+                        return;
                     }
                     default -> System.out.println("Choix invalide !");
                 }
+            }
 
-            } else {
-                // Menu complet (réseau valide)
+            // --- Sinon : menu principal complet ---
+            else {
                 System.out.println("\n===== MENU PRINCIPAL =====");
                 System.out.println("1) Ajouter un générateur");
                 System.out.println("2) Ajouter une maison");
@@ -68,18 +62,24 @@ public class Main {
                 scanner.nextLine(); // vide le buffer
 
                 switch (choix) {
+                    // --- Ajouter un générateur ---
                     case 1 -> {
                         Generateur g = generateurFactory.creerGenerateur();
-                        if (g != null) reseau.ajouterGenerateur(g);
+                        if (g != null)
+                            reseau.ajouterGenerateur(g);
                     }
 
+                    // --- Ajouter une maison ---
                     case 2 -> {
                         Maison m = maisonFactory.creerMaison();
-                        if (m != null) reseau.ajouterMaison(m);
+                        if (m != null)
+                            reseau.ajouterMaison(m);
                     }
 
+                    // --- Ajouter une connexion ---
                     case 3 -> {
-                        System.out.println("Entrez la maison et le générateur à connecter (ex: M1 G1 ou G1 M1) : ");
+                        // Demander à l'utilisateur la maison et le générateur
+                        System.out.print("Entrez la maison et le générateur à connecter (ex: M1 G1 ou G1 M1): ");
                         String ligne = scanner.nextLine().trim();
                         String[] parties = ligne.split(" ");
 
@@ -88,37 +88,40 @@ public class Main {
                             break;
                         }
 
-                        // Accès direct via les HashMaps
-                        Maison maison = reseau.getEnsembleMaisons().get(parties[0]);
-                        Generateur generateur = reseau.getEnsembleGenerateurs().get(parties[1]);
+                        String nom1 = parties[0];
+                        String nom2 = parties[1];
 
-                        // Si inversé (G1 M1)
+                        // Identifier les objets correspondants
+                        Maison maison = reseau.getMaisonParNom(nom1);
+                        Generateur generateur = reseau.getGenerateurParNom(nom2);
+
+                        // Si l'ordre est inversé (ex: G1 M1)
                         if (maison == null && generateur == null) {
-                            maison = reseau.getEnsembleMaisons().get(parties[1]);
-                            generateur = reseau.getEnsembleGenerateurs().get(parties[0]);
+                            maison = reseau.getMaisonParNom(nom2);
+                            generateur = reseau.getGenerateurParNom(nom1);
                         }
 
                         if (maison == null || generateur == null) {
                             System.out.println("Maison ou générateur introuvable. Vérifiez que les deux existent.");
                         } else {
-                            reseau.ajouterConnexion(new Connexion(maison, generateur));
+                            reseau.ajouterConnexion(maison.getNom(), generateur.getNom());
                         }
                     }
 
-                    case 4 -> {
-                        System.out.println("\n===== AFFICHAGE DU RÉSEAU =====");
-                        reseau.afficherGenerateurs();
-                        reseau.afficherMaisons();
-                        reseau.afficherConnexions();
-                    }
+                    // --- Afficher le réseau ---
+                    case 4 -> reseau.afficherReseau();
 
-                    case 5 -> System.out.println("👋 Fin du programme. À bientôt !");
+                    // --- Quitter ---
+                    case 5 -> {
+                        System.out.println("Fin du programme.");
+                        scanner.close();
+                        return;
+                    }
 
                     default -> System.out.println("Choix invalide !");
                 }
             }
-        } while (choix != 5);
 
-        scanner.close();
+        } while (true);
     }
 }
