@@ -26,7 +26,7 @@ public class Reseau {
                 int nouvelleCapaciteTotale = capaciteTotale - ancienneCapacite + nouvelleCapacite;
 
                 if (nouvelleCapaciteTotale < consommationTotale) {
-                    System.out.println("Mise à jour impossible : la capacité totale (" + nouvelleCapaciteTotale +
+                    System.out.println("⚠️  Mise à jour impossible : la capacité totale (" + nouvelleCapaciteTotale +
                             " kW) serait inférieure à la consommation actuelle (" + consommationTotale + " kW).");
                     return;
                 }
@@ -59,7 +59,7 @@ public class Reseau {
                     int nouvelleTotale = consommationTotale - ancienneConso + nouvelleConso;
 
                     if (nouvelleTotale > capaciteTotale) {
-                        System.out.println("Mise à jour impossible : la consommation totale (" + nouvelleTotale +
+                        System.out.println("⚠️  Mise à jour impossible : la consommation totale (" + nouvelleTotale +
                                 " kW) dépasserait la capacité du réseau (" + capaciteTotale + " kW).");
                         return;
                     }
