@@ -35,6 +35,6 @@ public class Generateur {
     }
    
     public void afficher(){
-        System.out.println(this);
+        System.out.print(this);
     }
 }

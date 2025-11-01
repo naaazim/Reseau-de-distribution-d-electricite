@@ -7,9 +7,11 @@ public class Reseau {
     private List<Maison> maisonsNonConnectees;        // Maisons créées mais pas encore reliées
     private int capaciteTotale;
     private int consommationTotale;
+    private static final int LAMBDA = 10; // Sévérité de la pénalisation 
 
     public Reseau() {
-        connexions = new HashMap<>();
+        //Utilisation de linkedHashMap pour conserver l'ordre d'ajout des éléments
+        connexions = new LinkedHashMap<>();
         maisonsNonConnectees = new ArrayList<>();
         capaciteTotale = 0;
         consommationTotale = 0;
@@ -133,7 +135,7 @@ public class Reseau {
     }
 
     // --- Afficher le réseau complet ---
-    public void afficherReseau() {
+    public void afficher() {
         System.out.println("\n===== RÉSEAU ÉLECTRIQUE =====");
 
         if (connexions.isEmpty()) {
@@ -143,31 +145,20 @@ public class Reseau {
 
         for (Generateur g : connexions.keySet()) {
             List<Maison> maisons = connexions.get(g);
-            System.out.println("\n" + g.getNom() + " (" + g.getCapacite() + " kW) alimente :");
+            System.out.println("");
+            g.afficher();
+            System.out.println(" alimente :");
 
             if (maisons.isEmpty()) {
                 System.out.println("   Aucune maison connectée.");
             } else {
                 for (Maison m : maisons) {
-                    System.out.println("   - " + m.getNom() + " (" + m.getTypeConso() + " - " +
-                            m.getTypeConso().getConsommation() + " kW)");
+                    System.out.print("   - ");
+                    m.afficher();
                 }
             }
         }
-
-        if (!maisonsNonConnectees.isEmpty()) {
-            System.out.println("\nMaisons non connectées :");
-            for (Maison m : maisonsNonConnectees) {
-                System.out.println("   - " + m.getNom() + " (" + m.getTypeConso() + ")");
-            }
-        }
-
         System.out.println("\nCapacité totale : " + capaciteTotale + " kW | Consommation totale : " + consommationTotale + " kW");
-    }
-
-    // --- Méthodes utilitaires ---
-    public boolean estVide() {
-        return connexions.isEmpty();
     }
 
     public Generateur getGenerateurParNom(String nom) {
@@ -178,6 +169,7 @@ public class Reseau {
     }
 
     public Maison getMaisonParNom(String nom) {
+        
         for (List<Maison> liste : connexions.values()) {
             for (Maison m : liste) {
                 if (m.getNom().equalsIgnoreCase(nom)) return m;
@@ -185,6 +177,106 @@ public class Reseau {
         }
         for (Maison m : maisonsNonConnectees) {
             if (m.getNom().equalsIgnoreCase(nom)) return m;
+        }
+        return null;
+    }
+    public boolean isValide(){
+        return maisonsNonConnectees.isEmpty();
+    }
+    public double getTauxUtilisation(Generateur g) {
+        if (!connexions.containsKey(g)) {
+            System.out.println("⚠️ Générateur " + g.getNom() + " non trouvé dans le réseau.");
+            return 0;
+        }
+
+        int charge = 0;
+        for (Maison m : connexions.get(g)) {
+            charge += m.getTypeConso().getConsommation();
+        }
+
+        if (g.getCapacite() == 0) return 0; // éviter division par zéro
+        return (double) charge / g.getCapacite();
+    }
+    public double dispersion() {
+        if (connexions.isEmpty()) return 0;
+
+        Map<Generateur, Double> taux = new HashMap<>();
+        double somme = 0;
+
+        for (Generateur g : connexions.keySet()) {
+            double u = getTauxUtilisation(g);
+            taux.put(g, u);
+            somme += u;
+        }
+
+        double moyenne = somme / connexions.size();
+
+        double dispersion = 0;
+        for (double u : taux.values()) {
+            dispersion += Math.abs(u - moyenne);
+        }
+
+        return dispersion;
+    }
+    public double surcharge(){
+        if(connexions.isEmpty())return 0;
+        double surcharge = 0;
+        for(Generateur g : connexions.keySet()){
+            double chargeActuelle = 0;
+            for(Maison m : connexions.get(g)){
+                chargeActuelle += m.getTypeConso().getConsommation();
+            }
+            surcharge += Math.max(0, (double)(chargeActuelle - g.getCapacite()) / g.getCapacite());
+        }
+        return surcharge;
+    }
+
+    public double calculerCout(){
+        return dispersion() + LAMBDA * surcharge();
+    }
+    public void modifierConnexion(String ancienneMaison, String ancienGenerateur,String nouvelleMaison, String nouveauGenerateur) {
+        Maison maison = getMaisonParNom(ancienneMaison);
+        Generateur ancienGen = getGenerateurParNom(ancienGenerateur);
+        Generateur nouveauGen = getGenerateurParNom(nouveauGenerateur);
+
+        // Vérifier que la maison est bien connectée à l’ancien générateur
+        if (!connexions.containsKey(ancienGen) || !connexions.get(ancienGen).contains(maison)) {
+            System.out.println("⚠️  La maison " + maison.getNom() + " n'est pas connectée à " + ancienGen.getNom() + ".");
+            return;
+        }
+
+        // Vérifier que le nouveau générateur existe dans le réseau
+        if (!connexions.containsKey(nouveauGen)) {
+            System.out.println("⚠️  Le générateur " + nouveauGenerateur + " n'existe pas dans le réseau.");
+            return;
+        }
+
+        // Vérifier que la maison n’est pas déjà connectée à ce générateur
+        if (connexions.get(nouveauGen).contains(maison)) {
+            System.out.println("⚠️  La maison " + maison.getNom() + " est déjà connectée à " + nouveauGen.getNom() + ".");
+            return;
+        }
+
+        // --- Modification effective ---
+        connexions.get(ancienGen).remove(maison);
+        connexions.get(nouveauGen).add(maison);
+
+        System.out.println("✅ Connexion modifiée : " + maison.getNom() + 
+                        " passe de " + ancienGen.getNom() + " à " + nouveauGen.getNom() + ".");
+    }
+
+    public Maison getMaisonDepuisLigne(String[] parts) {
+        for (String s : parts) {
+            Maison m = getMaisonParNom(s);
+            if (m != null) return m;
+        }
+        return null;
+    }
+
+    public Generateur getGenerateurDepuisLigne(String[] parts) {
+        for (String s : parts) {
+            Generateur g = getGenerateurParNom(s);
+            if (g != null) return g;
         }
         return null;
     }

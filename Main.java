@@ -17,8 +17,7 @@ public class Main {
             System.out.println("1) Ajouter un générateur");
             System.out.println("2) Ajouter une maison");
             System.out.println("3) Ajouter une connexion");
-            System.out.println("4) Afficher le réseau");
-            System.out.println("5) Quitter");
+            System.out.println("4) Quitter");
             System.out.print("Votre choix : ");
 
             while (!scanner.hasNextInt()) {
@@ -75,14 +74,76 @@ public class Main {
                     }
                 }
 
-                // --- Afficher le réseau ---
-                case 4 -> reseau.afficherReseau();
+                // --- Verifier que le réseau est valide (pas de maisons non connectés et passer à la suite) ---
+                case 4 -> {
+                    if(reseau.isValide()){
+                        do{
+                            System.out.println("\n===== MENU CALCUL =====");
+                            System.out.println("1) Calculer le coût du réseau électrique actuel");
+                            System.out.println("2) Modifier une connexion");
+                            System.out.println("3) Afficher le réseau");
+                            System.out.println("4) Fin");
+                            System.out.print("Votre choix : ");
+                            while (!scanner.hasNextInt()) {
+                                System.out.println("Veuillez entrer un nombre valide !");
+                                scanner.next();
+                            }
 
-                // --- Quitter ---
-                case 5 -> {
-                    System.out.println("👋 Fin du programme.");
-                    scanner.close();
-                    return;
+                            choix = scanner.nextInt();
+                            scanner.nextLine(); // vide le buffer
+                            switch (choix) {
+                                case 1 -> {
+                                    System.out.print("Le coût de votre réseau est: ");
+                                    System.out.println(reseau.calculerCout());
+                                }
+                                case 2 -> {
+                                    System.out.print("Entrez la connexion à modifier (ex: M1 G1 ou G1 M1): ");
+                                    String ancienne = scanner.nextLine().trim();
+                                    String[] parts1 = ancienne.split(" ");
+                                    if (parts1.length != 2) {
+                                        System.out.println("Format invalide !");
+                                        break;
+                                    }
+
+                                    Maison ancienneMaison = reseau.getMaisonDepuisLigne(parts1);
+                                    Generateur ancienGen = reseau.getGenerateurDepuisLigne(parts1);
+
+                                    if (ancienneMaison == null || ancienGen == null) {
+                                        System.out.println("Connexion invalide (maison ou générateur introuvable).");
+                                        break;
+                                    }
+
+                                    System.out.print("Entrez la nouvelle connexion (ex: M1 G2 ou G2 M1): ");
+                                    String nouvelle = scanner.nextLine().trim();
+                                    String[] parts2 = nouvelle.split(" ");
+                                    if (parts2.length != 2) {
+                                        System.out.println("Format invalide !");
+                                        break;
+                                    }
+
+                                    Maison nouvelleMaison = reseau.getMaisonDepuisLigne(parts2);
+                                    Generateur nouveauGen = reseau.getGenerateurDepuisLigne(parts2);
+
+                                    if (nouvelleMaison == null || nouveauGen == null) {
+                                        System.out.println("Nouvelle connexion invalide (maison ou générateur introuvable).");
+                                        break;
+                                    }
+
+                                    reseau.modifierConnexion(ancienneMaison.getNom(), ancienGen.getNom(), nouvelleMaison.getNom(), nouveauGen.getNom());
+                                }
+                                case 3 -> {
+                                    reseau.afficher();
+                                }
+                                case 4 -> {
+                                    scanner.close();
+                                    return;
+                                }
+                                default -> System.out.println("Choix invalide !");
+                            }
+                        } while (true);
+                    }else{
+                        System.out.println("⚠️  Votre réseau n'est pas valide, verifiez que toutes les maisons sont connectées");
+                    }
                 }
 
                 default -> System.out.println("Choix invalide !");
