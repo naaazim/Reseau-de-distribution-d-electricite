@@ -50,45 +50,64 @@ public class Reseau {
 
     // --- Ajouter ou mettre à jour une maison (non connectée) ---
     public void ajouterMaison(Maison m) {
-        // Vérifie si la maison est déjà connectée
+        int nouvelleConso = m.getTypeConso().getConsommation();
+
+        // --- Vérifie si la maison existe déjà (connectée ou non) ---
         for (List<Maison> liste : connexions.values()) {
             for (Maison existante : liste) {
                 if (existante.getNom().equalsIgnoreCase(m.getNom())) {
-                    System.out.println("La maison " + m.getNom() + " existe déjà et est connectée.");
-
                     int ancienneConso = existante.getTypeConso().getConsommation();
-                    int nouvelleConso = m.getTypeConso().getConsommation();
-                    int nouvelleTotale = consommationTotale - ancienneConso + nouvelleConso;
+                    int majTotale = consommationTotale - ancienneConso + nouvelleConso;
 
-                    if (nouvelleTotale > capaciteTotale) {
-                        System.out.println("⚠️  Mise à jour impossible : la consommation totale (" + nouvelleTotale +
-                                " kW) dépasserait la capacité du réseau (" + capaciteTotale + " kW).");
+                    if (majTotale > capaciteTotale) {
+                        System.out.println("⚠️  Mise à jour impossible : la consommation totale (" + majTotale +
+                                " kW) dépasserait la capacité totale du réseau (" + capaciteTotale + " kW).");
                         return;
                     }
 
                     existante.setTypeConso(m.getTypeConso());
-                    consommationTotale = nouvelleTotale;
-                    System.out.println("Mise à jour de la consommation de " + m.getNom() +
+                    consommationTotale = majTotale;
+                    System.out.println("✅ Mise à jour de la consommation de " + m.getNom() +
                             ". Nouvelle consommation totale : " + consommationTotale + " kW.");
                     return;
                 }
             }
         }
 
-        // Vérifie si elle existe parmi les maisons non connectées
         for (Maison existante : maisonsNonConnectees) {
             if (existante.getNom().equalsIgnoreCase(m.getNom())) {
-                System.out.println("La maison " + m.getNom() + " existe déjà (non connectée).");
+                int ancienneConso = existante.getTypeConso().getConsommation();
+                int majTotale = consommationTotale - ancienneConso + nouvelleConso;
+
+                if (majTotale > capaciteTotale) {
+                    System.out.println("⚠️  Mise à jour impossible : la consommation totale (" + majTotale +
+                            " kW) dépasserait la capacité totale du réseau (" + capaciteTotale + " kW).");
+                    return;
+                }
+
                 existante.setTypeConso(m.getTypeConso());
-                System.out.println("Type de consommation mis à jour : " + m.getTypeConso());
+                consommationTotale = majTotale;
+                System.out.println("✅ Type de consommation mis à jour pour " + m.getNom() +
+                        ". Nouvelle consommation totale : " + consommationTotale + " kW.");
                 return;
             }
         }
 
-        // Sinon, nouvelle maison
+        // --- Si c’est une nouvelle maison ---
+        int nouvelleTotale = consommationTotale + nouvelleConso;
+        if (nouvelleTotale > capaciteTotale) {
+            System.out.println("⚠️  Ajout impossible : la consommation totale (" + nouvelleTotale +
+                    " kW) dépasserait la capacité totale du réseau (" + capaciteTotale + " kW).");
+            return;
+        }
+
+        // --- Ajout validé ---
         maisonsNonConnectees.add(m);
-        System.out.println("Maison ajoutée : " + m + " (non connectée)");
+        consommationTotale = nouvelleTotale;
+        System.out.println("Maison ajoutée : " + m + " (non connectée). Consommation totale : "
+                + consommationTotale + " kW.");
     }
+
 
     // --- Ajouter une connexion (relier une maison à un générateur) ---
     public void ajouterConnexion(String nomMaison, String nomGenerateur) {
@@ -120,16 +139,8 @@ public class Reseau {
             }
         }
 
-        int nouvelleConso = consommationTotale + m.getTypeConso().getConsommation();
-        if (nouvelleConso > capaciteTotale) {
-            System.out.println("Connexion impossible : la consommation totale (" + nouvelleConso +
-                    " kW) dépasserait la capacité totale (" + capaciteTotale + " kW).");
-            return;
-        }
-
         connexions.get(g).add(m);
         maisonsNonConnectees.remove(m);
-        consommationTotale = nouvelleConso;
         System.out.println("Connexion ajoutée : " + g.getNom() + " → " + m.getNom() +
                 " | Consommation totale : " + consommationTotale + " kW");
     }
