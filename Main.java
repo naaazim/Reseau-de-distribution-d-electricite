@@ -16,8 +16,9 @@ public class Main {
             System.out.println("\n===== MENU PRINCIPAL =====");
             System.out.println("1) Ajouter un générateur");
             System.out.println("2) Ajouter une maison");
-            System.out.println("3) Ajouter une connexion");
-            System.out.println("4) Quitter");
+            System.out.println("3) ajouter une connexion entre une maison et un générateur existants");
+            System.out.println("4) supprimer une connexion existante entre une maison et un générateur");
+            System.out.println("5) Quitter");
             System.out.print("Votre choix : ");
 
             while (!scanner.hasNextInt()) {
@@ -47,7 +48,7 @@ public class Main {
                     // Demander à l'utilisateur la maison et le générateur
                     System.out.print("Entrez la maison et le générateur à connecter (ex: M1 G1 ou G1 M1): ");
                     String ligne = scanner.nextLine().trim();
-                    String[] parties = ligne.split(" ");
+                    String[] parties = ligne.split("\\s+");
 
                     if (parties.length != 2) {
                         System.out.println("Format invalide. Exemple attendu : M1 G1");
@@ -73,9 +74,34 @@ public class Main {
                         reseau.ajouterConnexion(maison.getNom(), generateur.getNom());
                     }
                 }
+                case 4 ->{
+                    System.out.print("Pour supprimer une connexion existante, entrez la maison et le générateur (ex: M1 G1 ou G1 M1):");
+                    String ligne = scanner.nextLine().trim();
+                    String[] parties = ligne.split("\\s+");
+                    if(parties.length != 2){
+                        System.out.println("Format invalide. Exemple attendu : M1 G1");
+                        break;
+                    }
+                    String nom1 = parties[0];
+                    String nom2 = parties[1];
+                     // Identifier les objets correspondants
+                    Maison maison = reseau.getMaisonParNom(nom1);
+                    Generateur generateur = reseau.getGenerateurParNom(nom2);
+                    // Si l'ordre est inversé (ex: G1 M1)
+                    if (maison == null && generateur == null) {
+                        maison = reseau.getMaisonParNom(nom2);
+                        generateur = reseau.getGenerateurParNom(nom1);
+                    }
+                    if (maison == null || generateur == null) {
+                        System.out.println("Maison ou générateur introuvable. Vérifiez que les deux existent.");
+                    } else {
+                        reseau.supprimerConnexion(maison.getNom(), generateur.getNom());
+                    }
 
+
+                }
                 // --- Verifier que le réseau est valide (pas de maisons non connectés et passer à la suite) ---
-                case 4 -> {
+                case 5 -> {
                     if(reseau.isValide()){
                         do{
                             System.out.println("\n===== MENU CALCUL =====");
@@ -99,7 +125,7 @@ public class Main {
                                 case 2 -> {
                                     System.out.print("Entrez la connexion à modifier (ex: M1 G1 ou G1 M1): ");
                                     String ancienne = scanner.nextLine().trim();
-                                    String[] parts1 = ancienne.split(" ");
+                                    String[] parts1 = ancienne.split("\\s+");
                                     if (parts1.length != 2) {
                                         System.out.println("Format invalide !");
                                         break;
@@ -115,7 +141,7 @@ public class Main {
 
                                     System.out.print("Entrez la nouvelle connexion (ex: M1 G2 ou G2 M1): ");
                                     String nouvelle = scanner.nextLine().trim();
-                                    String[] parts2 = nouvelle.split(" ");
+                                    String[] parts2 = nouvelle.split("\\s+");
                                     if (parts2.length != 2) {
                                         System.out.println("Format invalide !");
                                         break;
@@ -149,7 +175,6 @@ public class Main {
                 default -> System.out.println("Choix invalide !");
             
             }
-
         } while (true);
     }
 }

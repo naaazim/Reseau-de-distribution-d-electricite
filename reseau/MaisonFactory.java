@@ -15,7 +15,7 @@ public class MaisonFactory {
         String ligne = scanner.nextLine().trim(); // lit toute la ligne
 
         // On découpe la ligne en morceaux
-        String[] parties = ligne.split(" "); // découpe par un ou plusieurs espaces
+        String[] parties = ligne.split("\\s+"); // découpe par un ou plusieurs espaces
 
         if (parties.length != 2) {
             System.out.println("Format invalide. Exemple attendu : M1 NORMALE");

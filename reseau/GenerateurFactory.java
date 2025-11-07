@@ -12,7 +12,7 @@ public class GenerateurFactory {
     public Generateur creerGenerateur(){
         System.out.println("Entrez le nom du générateur suivi de sa capacité en kW (ex: G1 60): ");
         String ligne = scanner.nextLine().trim();
-        String parties[] = ligne.split(" ");
+        String parties[] = ligne.split("\\s+");
         if (parties.length != 2) {
             System.out.println("Format invalide. Exemple de saisie attendu : G1 60");
             return null;
@@ -23,6 +23,9 @@ public class GenerateurFactory {
             return new Generateur(nom, capacite);
         }catch(NumberFormatException e){
             System.err.println("Capacité invalide " + e.getMessage());
+            return null;
+        }catch(IllegalArgumentException e){
+            System.err.println(e.getMessage());
             return null;
         }
     }

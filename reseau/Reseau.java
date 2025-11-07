@@ -144,6 +144,19 @@ public class Reseau {
         System.out.println("Connexion ajoutée : " + g.getNom() + " → " + m.getNom() +
                 " | Consommation totale : " + consommationTotale + " kW");
     }
+    public void supprimerConnexion(String nomMaison, String nomGenerateur){
+        Generateur g = getGenerateurParNom(nomGenerateur);
+        Maison m = getMaisonParNom(nomMaison);
+        if(g != null){
+            if(connexions.get(g).contains(m)){
+                connexions.get(g).remove(m);
+                maisonsNonConnectees.add(m);
+                System.out.println("✅ Connexion supprimée avec succés");
+            }
+        }else{
+            System.out.println("La maison " + nomMaison + " n'est pas connectée au générateur " + nomGenerateur);
+        }
+    }
 
     // --- Afficher le réseau complet ---
     public void afficher() {
