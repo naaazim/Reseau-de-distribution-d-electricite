@@ -1,10 +1,10 @@
 package com.example.reseau;
 
-public class Generateur {
+public class Generateur{
     private String nom; 
     private int capacite;
     public Generateur(String nom, int capacite) {
-        if (capacite < 0) throw new IllegalArgumentException("⚠️  La capacité doit être positive !");
+        if (capacite <= 0) throw new IllegalArgumentException("⚠️  La capacité doit être positive !");
         this.nom = nom;
         this.capacite = capacite;
     }
@@ -22,6 +22,10 @@ public class Generateur {
             throw new IllegalArgumentException("⚠️  La capacité doit être positive !");
         }
         this.capacite = capacite;
+    }
+    @Override
+    public int hashCode() {
+        return nom == null ? 0 : nom.toLowerCase().hashCode();
     }
     @Override
     public boolean equals(Object obj) {

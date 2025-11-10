@@ -11,7 +11,7 @@ public class MaisonFactory {
     }
 
     public Maison creerMaison(){
-        System.out.print("Entrez le nom et le type de consommation (ex: M1 NORMALE) : ");
+        System.out.print("Entrez le nom et le type de consommation (BASSE - NORMALE - FORTE) (ex: M1 NORMALE) : ");
         String ligne = scanner.nextLine().trim(); // lit toute la ligne
 
         // On découpe la ligne en morceaux
@@ -27,7 +27,7 @@ public class MaisonFactory {
 
         try {
             TypeConso type = TypeConso.valueOf(typeStr);
-            return new Maison(nom, type);
+            return new Maison(nom.toUpperCase(), type);
         } catch (IllegalArgumentException e) {
             System.err.println("Type de consommation invalide. Utilisez BASSE, NORMALE ou FORTE.");
             return null;

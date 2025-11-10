@@ -5,8 +5,8 @@ import java.util.Scanner;
 public class GenerateurFactory {
     private Scanner scanner;
     
-    public GenerateurFactory(){
-        scanner = new Scanner(System.in);
+    public GenerateurFactory(Scanner scanner){
+        this.scanner = scanner;
     }
 
     public Generateur creerGenerateur(){
@@ -20,10 +20,7 @@ public class GenerateurFactory {
         String nom = parties[0];
         try{
             int capacite = Integer.parseInt(parties[1]);
-            return new Generateur(nom, capacite);
-        }catch(NumberFormatException e){
-            System.err.println("Capacité invalide " + e.getMessage());
-            return null;
+            return new Generateur(nom.toUpperCase(), capacite);
         }catch(IllegalArgumentException e){
             System.err.println(e.getMessage());
             return null;

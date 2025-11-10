@@ -119,16 +119,8 @@ public class Reseau {
 
         Maison m = getMaisonParNom(nomMaison);
         if (m == null) {
-            for (Maison tmp : maisonsNonConnectees) {
-                if (tmp.getNom().equalsIgnoreCase(nomMaison)) {
-                    m = tmp;
-                    break;
-                }
-            }
-            if (m == null) {
-                System.out.println("La maison " + nomMaison + " n'existe pas. Veuillez d'abord l'ajouter.");
-                return;
-            }
+            System.out.println("La maison " + nomMaison + " n'existe pas. Veuillez d'abord l'ajouter.");
+            return;
         }
 
         // Vérifie si la maison est déjà connectée
@@ -157,7 +149,18 @@ public class Reseau {
             System.out.println("La maison " + nomMaison + " n'est pas connectée au générateur " + nomGenerateur);
         }
     }
-
+    public boolean isConnexionPossible(){
+        return maisonsNonConnectees.isEmpty() || connexions.isEmpty();
+    }
+    //Cette méthode sera utilisée au moment de l'ajout d'une connexion et permettera d'afficher les options de connexions disponibles (Generateurs + maisons non connectées)
+    public void afficherOptions(){
+        for(Maison m : maisonsNonConnectees){
+            System.out.println("Maisons non connectées");
+            System.out.print("  - ");
+            m.afficher();
+        }
+        afficher();
+    }
     // --- Afficher le réseau complet ---
     public void afficher() {
         System.out.println("\n===== RÉSEAU ÉLECTRIQUE =====");
@@ -172,7 +175,6 @@ public class Reseau {
             System.out.println("");
             g.afficher();
             System.out.println(" alimente :");
-
             if (maisons.isEmpty()) {
                 System.out.println("   Aucune maison connectée.");
             } else {

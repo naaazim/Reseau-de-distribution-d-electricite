@@ -34,4 +34,9 @@ public class Maison {
     public void afficher(){
         System.out.println(this);
     }
+    @Override
+    public int hashCode() {
+        return nom == null ? 0 : nom.toLowerCase().hashCode();
+    }
+
 }

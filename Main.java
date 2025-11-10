@@ -8,7 +8,7 @@ public class Main {
         Scanner scanner = new Scanner(System.in);
         Reseau reseau = new Reseau();
         MaisonFactory maisonFactory = new MaisonFactory();
-        GenerateurFactory generateurFactory = new GenerateurFactory();
+        GenerateurFactory generateurFactory = new GenerateurFactory(scanner);
 
         int choix;
 
@@ -45,33 +45,40 @@ public class Main {
 
                 // --- Ajouter une connexion ---
                 case 3 -> {
-                    // Demander à l'utilisateur la maison et le générateur
-                    System.out.print("Entrez la maison et le générateur à connecter (ex: M1 G1 ou G1 M1): ");
-                    String ligne = scanner.nextLine().trim();
-                    String[] parties = ligne.split("\\s+");
+                    if(!reseau.isConnexionPossible()){
 
-                    if (parties.length != 2) {
-                        System.out.println("Format invalide. Exemple attendu : M1 G1");
-                        break;
-                    }
+                        //Afficher les options de connexion disponibles (Générateurs + maisons non connectées)
+                        reseau.afficherOptions();
+                        // Demander à l'utilisateur la maison et le générateur
+                        System.out.print("Entrez la maison et le générateur à connecter (ex: M1 G1 ou G1 M1): ");
+                        String ligne = scanner.nextLine().trim();
+                        String[] parties = ligne.split("\\s+");
 
-                    String nom1 = parties[0];
-                    String nom2 = parties[1];
+                        if (parties.length != 2) {
+                            System.out.println("Format invalide. Exemple attendu : M1 G1");
+                            break;
+                        }
 
-                    // Identifier les objets correspondants
-                    Maison maison = reseau.getMaisonParNom(nom1);
-                    Generateur generateur = reseau.getGenerateurParNom(nom2);
+                        String nom1 = parties[0];
+                        String nom2 = parties[1];
 
-                    // Si l'ordre est inversé (ex: G1 M1)
-                    if (maison == null && generateur == null) {
-                        maison = reseau.getMaisonParNom(nom2);
-                        generateur = reseau.getGenerateurParNom(nom1);
-                    }
+                        // Identifier les objets correspondants
+                        Maison maison = reseau.getMaisonParNom(nom1);
+                        Generateur generateur = reseau.getGenerateurParNom(nom2);
 
-                    if (maison == null || generateur == null) {
-                        System.out.println("Maison ou générateur introuvable. Vérifiez que les deux existent.");
-                    } else {
-                        reseau.ajouterConnexion(maison.getNom(), generateur.getNom());
+                        // Si l'ordre est inversé (ex: G1 M1)
+                        if (maison == null && generateur == null) {
+                            maison = reseau.getMaisonParNom(nom2);
+                            generateur = reseau.getGenerateurParNom(nom1);
+                        }
+
+                        if (maison == null || generateur == null) {
+                            System.out.println("Maison ou générateur introuvable. Vérifiez que les deux existent.");
+                        } else {
+                            reseau.ajouterConnexion(maison.getNom(), generateur.getNom());
+                        }
+                    }else{
+                        System.out.println("Aucune connexion possible vérifiez quez vous avez au moins un générateur et une maison non connectée");
                     }
                 }
                 case 4 ->{
