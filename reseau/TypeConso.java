@@ -1,4 +1,4 @@
-package com.example.reseau;
+package main.java.com.example.reseau;
 
 public enum TypeConso {
     BASSE(10),NORMALE(20),FORTE(40);

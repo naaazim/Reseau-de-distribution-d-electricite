@@ -1,4 +1,4 @@
-package com.example.reseau;
+package main.java.com.example.reseau;
 
 public class Maison {
     private String nom;

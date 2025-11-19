@@ -1,4 +1,4 @@
-package com.example.reseau;
+package main.java.com.example.reseau;
 
 import java.util.Scanner;
 

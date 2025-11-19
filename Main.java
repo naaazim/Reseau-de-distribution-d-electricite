@@ -5,10 +5,10 @@
  *      - FERHANI Ales Amazigh
  *      - BENOUFELLA Mohamed Yacine 
  */
-package com.example;
+package main.java.com.example;
 
 import java.util.Scanner;
-import com.example.reseau.*;
+import main.java.com.example.reseau.*;
 
 public class Main {
     public static void main(String[] args) {

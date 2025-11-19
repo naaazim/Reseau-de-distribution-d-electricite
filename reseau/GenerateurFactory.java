@@ -1,4 +1,4 @@
-package com.example.reseau;
+package main.java.com.example.reseau;
 import java.util.Scanner;
 
 //Nous allons utiliser le Design Pattern Factory pour créer de nouveaux objets de type Generateur grâce à une saisie utilisteur 
