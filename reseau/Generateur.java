@@ -4,7 +4,7 @@ public class Generateur{
     private String nom; 
     private int capacite;
     public Generateur(String nom, int capacite) {
-        if (capacite <= 0) throw new IllegalArgumentException("⚠️  La capacité doit être positive !");
+        if (capacite <= 0) throw new IllegalArgumentException("  La capacité doit être positive !");
         this.nom = nom;
         this.capacite = capacite;
     }
@@ -19,7 +19,7 @@ public class Generateur{
     }
     public void setCapacite(int capacite){
         if (capacite <= 0) {
-            throw new IllegalArgumentException("⚠️  La capacité doit être positive !");
+            throw new IllegalArgumentException("  La capacité doit être positive !");
         }
         this.capacite = capacite;
     }
