@@ -1,3 +1,10 @@
+/*
+ * GROUPE: JEUDI MATIN
+ * MEMBRES:
+ *      - HAMIA Abderahmane Nazim
+ *      - FERHANI Ales Amazigh
+ *      - BENOUFELLA Mohamed Yacine 
+ */
 package com.example;
 
 import java.util.Scanner;
@@ -17,8 +24,9 @@ public class Main {
             System.out.println("1) Ajouter un générateur");
             System.out.println("2) Ajouter une maison");
             System.out.println("3) ajouter une connexion entre une maison et un générateur existants");
-            System.out.println("4) supprimer une connexion existante entre une maison et un générateur");
-            System.out.println("5) Quitter");
+            System.out.println("4) Charger un réseau depuis un fichier");
+            System.out.println("5) supprimer une connexion existante entre une maison et un générateur");
+            System.out.println("6) Quitter");
             System.out.print("Votre choix : ");
 
             while (!scanner.hasNextInt()) {
@@ -81,7 +89,7 @@ public class Main {
                         System.out.println("Aucune connexion possible vérifiez quez vous avez au moins un générateur et une maison non connectée");
                     }
                 }
-                case 4 ->{
+                case 5 ->{
                     System.out.print("Pour supprimer une connexion existante, entrez la maison et le générateur (ex: M1 G1 ou G1 M1):");
                     String ligne = scanner.nextLine().trim();
                     String[] parties = ligne.split("\\s+");
@@ -108,7 +116,7 @@ public class Main {
 
                 }
                 // --- Verifier que le réseau est valide (pas de maisons non connectés et passer à la suite) ---
-                case 5 -> {
+                case 6 -> {
                     if(reseau.isValide()){
                         do{
                             System.out.println("\n===== MENU CALCUL =====");

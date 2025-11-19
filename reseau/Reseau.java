@@ -1,5 +1,8 @@
 package com.example.reseau;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.*;
 
 public class Reseau {
@@ -306,4 +309,139 @@ public class Reseau {
         }
         return null;
     }
+
+    // --- Méthode pour charger un réseau depuis un fichier 
+    public void chargerReseauDepuisFichier(String path) {
+        try (BufferedReader br = new BufferedReader(new FileReader(path))) {
+
+            String ligne;
+            int etape = 0; // 0=générateurs, 1=maisons, 2=connexions
+
+            while ((ligne = br.readLine()) != null) {
+                ligne = ligne.trim();
+
+                // ignorer lignes vides
+                if (ligne.isEmpty()) continue;
+
+                // Vérifier le point final
+                if (!ligne.endsWith(".")) {
+                    throw new IllegalArgumentException("Erreur : ligne sans point final → " + ligne);
+                }
+
+                // Enlever le point
+                ligne = ligne.substring(0, ligne.length() - 1);
+
+                // -------------------------
+                //      PARSING GÉNÉRERATEUR
+                // -------------------------
+                if (ligne.startsWith("generateur(")) {
+                    if (etape > 0)
+                        throw new IllegalArgumentException("Erreur : générateur après début des maisons : " + ligne);
+
+                    etape = 0; // on est dans la bonne section
+                    parseGenerateur(ligne);
+                    continue;
+                }
+
+                // -------------------------
+                //          MAISON
+                // -------------------------
+                if (ligne.startsWith("maison(")) {
+                    if (etape > 1)
+                        throw new IllegalArgumentException("Erreur : maison après début des connexions : " + ligne);
+
+                    etape = 1; // section maisons
+                    parseMaison(ligne);
+                    continue;
+                }
+
+                // -------------------------
+                //        CONNEXION
+                // -------------------------
+                if (ligne.startsWith("connexion(")) {
+                    etape = 2; // section connexions
+                    parseConnexion(ligne);
+                    continue;
+                }
+
+                // Si rien ne correspond :
+                throw new IllegalArgumentException("Ligne invalide : " + ligne);
+            }
+
+            // Vérification finale
+            if (!isValide()) {
+                throw new IllegalStateException("Certaines maisons ne sont pas connectées !");
+            }
+
+        } catch (IOException e) {
+            System.out.println("Erreur de lecture du fichier : " + e.getMessage());
+        }
+    }
+    private void parseGenerateur(String ligne) {
+        // format attendu : generateur(gen1,60)
+        ligne = ligne.substring("generateur(".length(), ligne.length() - 1);
+        String[] parts = ligne.split(",");
+
+        if (parts.length != 2) {
+            throw new IllegalArgumentException("Format générateur invalide : " + ligne);
+        }
+
+        String nom = parts[0];
+        int capacite = Integer.parseInt(parts[1]);
+
+        ajouterGenerateur(new Generateur(nom, capacite));
+    }
+    private void parseMaison(String ligne) {
+        ligne = ligne.substring("maison(".length(), ligne.length() - 1);
+        String[] parts = ligne.split(",");
+
+        if (parts.length != 2) {
+            throw new IllegalArgumentException("Format maison invalide : " + ligne);
+        }
+
+        String nom = parts[0];
+        String type = parts[1];
+
+        TypeConso conso;
+
+        try {
+            conso = TypeConso.valueOf(type);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Type de consommation inconnu : " + type);
+        }
+
+        ajouterMaison(new Maison(nom, conso));
+    }
+    private void parseConnexion(String ligne) {
+        ligne = ligne.substring("connexion(".length(), ligne.length() - 1);
+        String[] parts = ligne.split(",");
+
+        if (parts.length != 2) {
+            throw new IllegalArgumentException("Format connexion invalide : " + ligne);
+        }
+
+        String a = parts[0].trim();
+        String b = parts[1].trim();
+
+        // ordre indifférent → détecter qui est quoi
+        Maison m = getMaisonParNom(a);
+        Generateur g = getGenerateurParNom(b);
+
+        if (m != null && g != null) {
+            ajouterConnexion(m.getNom(), g.getNom());
+            return;
+        }
+
+        // inversé ?
+        m = getMaisonParNom(b);
+        g = getGenerateurParNom(a);
+
+        if (m != null && g != null) {
+            ajouterConnexion(m.getNom(), g.getNom());
+            return;
+        }
+
+        throw new IllegalArgumentException("Connexion impossible : " + a + " - " + b);
+    }
+
 }
