@@ -11,14 +11,14 @@ public class MaisonFactory {
     }
 
     public Maison creerMaison(){
-        System.out.print("Entrez le nom et le type de consommation (BASSE - NORMALE - FORTE) (ex: M1 NORMALE) : ");
+        System.out.print("Entrez le nom et le type de consommation (BASSE - NORMAL - FORTE) (ex: M1 NORMAL) : ");
         String ligne = scanner.nextLine().trim(); // lit toute la ligne
 
         // On découpe la ligne en morceaux
         String[] parties = ligne.split("\\s+"); // découpe par un ou plusieurs espaces
 
         if (parties.length != 2) {
-            System.out.println("Format invalide. Exemple attendu : M1 NORMALE");
+            System.out.println("Format invalide. Exemple attendu : M1 NORMAL");
             return null;
         }
 
@@ -29,7 +29,7 @@ public class MaisonFactory {
             TypeConso type = TypeConso.valueOf(typeStr);
             return new Maison(nom.toUpperCase(), type);
         } catch (IllegalArgumentException e) {
-            System.err.println("Type de consommation invalide. Utilisez BASSE, NORMALE ou FORTE.");
+            System.err.println("Type de consommation invalide. Utilisez BASSE, NORMAL ou FORTE.");
             return null;
         }
     }
