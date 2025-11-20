@@ -9,6 +9,15 @@ public class Reseau {
     private Map<Generateur, List<Maison>> connexions; // Générateur -> liste de maisons
     private List<Maison> maisonsNonConnectees;        // Maisons créées mais pas encore reliées
     private int capaciteTotale;
+
+    public Map<Generateur, List<Maison>> getConnexions() {
+        return connexions;
+    }
+
+    public List<Maison> getMaisonsNonConnectees() {
+        return maisonsNonConnectees;
+    }
+
     private int consommationTotale;
     private static final int LAMBDA = 10; // Sévérité de la pénalisation 
 
@@ -270,19 +279,19 @@ public class Reseau {
 
         // Vérifier que la maison est bien connectée à l’ancien générateur
         if (!connexions.containsKey(ancienGen) || !connexions.get(ancienGen).contains(maison)) {
-            System.out.println("  La maison " + maison.getNom() + " n'est pas connectée à " + ancienGen.getNom() + ".");
+            System.out.println("La maison " + maison.getNom() + " n'est pas connectée à " + ancienGen.getNom() + ".");
             return;
         }
 
         // Vérifier que le nouveau générateur existe dans le réseau
         if (!connexions.containsKey(nouveauGen)) {
-            System.out.println("  Le générateur " + nouveauGenerateur + " n'existe pas dans le réseau.");
+            System.out.println("Le générateur " + nouveauGenerateur + " n'existe pas dans le réseau.");
             return;
         }
 
         // Vérifier que la maison n’est pas déjà connectée à ce générateur
         if (connexions.get(nouveauGen).contains(maison)) {
-            System.out.println("  La maison " + maison.getNom() + " est déjà connectée à " + nouveauGen.getNom() + ".");
+            System.out.println("La maison " + maison.getNom() + " est déjà connectée à " + nouveauGen.getNom() + ".");
             return;
         }
 
@@ -290,7 +299,7 @@ public class Reseau {
         connexions.get(ancienGen).remove(maison);
         connexions.get(nouveauGen).add(maison);
 
-        System.out.println(" Connexion modifiée : " + maison.getNom() + 
+        System.out.println("Connexion modifiée : " + maison.getNom() +
                         " passe de " + ancienGen.getNom() + " à " + nouveauGen.getNom() + ".");
     }
 
@@ -470,5 +479,54 @@ public class Reseau {
 
         throw new IllegalArgumentException("Connexion impossible : " + a + " - " + b);
     }
+    public Generateur getGenerateurAleatoire() {
+        List<Generateur> liste = new ArrayList<>(connexions.keySet());
+        if (liste.isEmpty()) return null;
+        return liste.get(new Random().nextInt(liste.size()));
+    }
 
+    public Maison getMaisonAleatoireComplet() {
+        List<Maison> toutes = new ArrayList<>();
+        for (List<Maison> l : connexions.values()) {
+            toutes.addAll(l);
+        }
+        toutes.addAll(maisonsNonConnectees);
+
+        if (toutes.isEmpty()) return null;
+        return toutes.get(new Random().nextInt(toutes.size()));
+    }
+
+    public Reseau algoNaif(Reseau reseau, int lambda, int k) {
+        int i = 0;
+
+        while (i < k) {
+            Maison m = reseau.getMaisonAleatoireComplet();
+            Generateur g = reseau.getGenerateurAleatoire();
+
+            if (m == null || g == null) break;
+
+            // Sauvegarde pour retour arrière
+            double ancienCout = reseau.calculerCout();
+
+            // On tente un changement
+            String ancienGen = "";
+            for (Generateur gen : reseau.getConnexions().keySet()) {
+                if (reseau.getConnexions().get(gen).contains(m)) {
+                    ancienGen = gen.getNom();
+                    break;
+                }
+            }
+
+            reseau.modifierConnexion(m.getNom(), ancienGen, m.getNom(), g.getNom());
+            double nouveauCout = reseau.calculerCout();
+
+            if (nouveauCout > ancienCout) {
+                reseau.modifierConnexion(m.getNom(), g.getNom(), m.getNom(), ancienGen);
+            }
+
+            i++;
+        }
+        return reseau;
+    }
 }
+

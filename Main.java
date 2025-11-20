@@ -9,10 +9,11 @@ package main.java.com.example;
 
 import java.util.Scanner;
 import main.java.com.example.reseau.*;
+import org.junit.jupiter.api.Test;
 
 public class Main {
 
-    // --- Menu de calcul (réutilisé en mode fichier + mode manuel) ---
+    // --- Menu de calcul (réutilisé en mode fichier + mode manuel) ---bb
     private static void menuCalcul(Scanner scanner, Reseau reseau) {
         int choix;
         while (true) {
@@ -93,7 +94,7 @@ public class Main {
         Reseau reseau = new Reseau();
 
         // ============================
-        //        MODE FICHIER (PARTIE 2)
+        // MODE FICHIER (PARTIE 2)
         // ============================
         if (args.length >= 1) {
             String path = args[0];
@@ -112,7 +113,7 @@ public class Main {
         }
 
         // ============================
-        //        MODE MANUEL (PARTIE 1)
+        // MODE MANUEL (PARTIE 1)
         // ============================
         MaisonFactory maisonFactory = new MaisonFactory();
         GenerateurFactory generateurFactory = new GenerateurFactory(scanner);
