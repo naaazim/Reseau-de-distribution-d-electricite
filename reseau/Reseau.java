@@ -2,6 +2,7 @@ package main.java.com.example.reseau;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
 
@@ -40,7 +41,7 @@ public class Reseau {
                 int nouvelleCapaciteTotale = capaciteTotale - ancienneCapacite + nouvelleCapacite;
 
                 if (nouvelleCapaciteTotale < consommationTotale) {
-                    System.out.println("  Mise à jour impossible : la capacité totale (" + nouvelleCapaciteTotale +
+                    System.err.println("Mise à jour impossible : la capacité totale (" + nouvelleCapaciteTotale +
                             " kW) serait inférieure à la consommation actuelle (" + consommationTotale + " kW).");
                     return;
                 }
@@ -72,14 +73,14 @@ public class Reseau {
                     int majTotale = consommationTotale - ancienneConso + nouvelleConso;
 
                     if (majTotale > capaciteTotale) {
-                        System.out.println("  Mise à jour impossible : la consommation totale (" + majTotale +
+                        System.err.println("Mise à jour impossible : la consommation totale (" + majTotale +
                                 " kW) dépasserait la capacité totale du réseau (" + capaciteTotale + " kW).");
                         return;
                     }
 
                     existante.setTypeConso(m.getTypeConso());
                     consommationTotale = majTotale;
-                    System.out.println(" Mise à jour de la consommation de " + m.getNom() +
+                    System.out.println("Mise à jour de la consommation de " + m.getNom() +
                             ". Nouvelle consommation totale : " + consommationTotale + " kW.");
                     return;
                 }
@@ -92,14 +93,14 @@ public class Reseau {
                 int majTotale = consommationTotale - ancienneConso + nouvelleConso;
 
                 if (majTotale > capaciteTotale) {
-                    System.out.println("  Mise à jour impossible : la consommation totale (" + majTotale +
+                    System.err.println("Mise à jour impossible : la consommation totale (" + majTotale +
                             " kW) dépasserait la capacité totale du réseau (" + capaciteTotale + " kW).");
                     return;
                 }
 
                 existante.setTypeConso(m.getTypeConso());
                 consommationTotale = majTotale;
-                System.out.println(" Type de consommation mis à jour pour " + m.getNom() +
+                System.out.println("Type de consommation mis à jour pour " + m.getNom() +
                         ". Nouvelle consommation totale : " + consommationTotale + " kW.");
                 return;
             }
@@ -108,7 +109,7 @@ public class Reseau {
         // --- Si c’est une nouvelle maison ---
         int nouvelleTotale = consommationTotale + nouvelleConso;
         if (nouvelleTotale > capaciteTotale) {
-            System.out.println("  Ajout impossible : la consommation totale (" + nouvelleTotale +
+            System.err.println("Ajout impossible : la consommation totale (" + nouvelleTotale +
                     " kW) dépasserait la capacité totale du réseau (" + capaciteTotale + " kW).");
             return;
         }
@@ -125,21 +126,20 @@ public class Reseau {
     public void ajouterConnexion(String nomMaison, String nomGenerateur) {
         Generateur g = getGenerateurParNom(nomGenerateur);
         if (g == null) {
-            System.out.println("Le générateur " + nomGenerateur + " n'existe pas.");
+            System.err.println("Le générateur " + nomGenerateur + " n'existe pas.");
             return;
         }
 
         Maison m = getMaisonParNom(nomMaison);
         if (m == null) {
-            System.out.println("La maison " + nomMaison + " n'existe pas. Veuillez d'abord l'ajouter.");
+            System.err.println("La maison " + nomMaison + " n'existe pas. Veuillez d'abord l'ajouter.");
             return;
         }
 
-        // Vérifie si la maison est déjà connectée
+        // Vérifie si  déjà connectée
         for (List<Maison> liste : connexions.values()) {
             if (liste.contains(m)) {
-                System.out.println("La maison " + nomMaison + " est déjà connectée à un générateur.");
-                return;
+                throw new IllegalArgumentException("La maison " + nomMaison + " est déjà connectée à un générateur.");
             }
         }
 
@@ -155,7 +155,7 @@ public class Reseau {
             if(connexions.get(g).contains(m)){
                 connexions.get(g).remove(m);
                 maisonsNonConnectees.add(m);
-                System.out.println(" Connexion supprimée avec succés");
+                System.out.println("Connexion supprimée avec succés");
             }
         }else{
             System.out.println("La maison " + nomMaison + " n'est pas connectée au générateur " + nomGenerateur);
@@ -344,7 +344,7 @@ public class Reseau {
                 // -------------------------
                 // GENERATEUR
                 // -------------------------
-                if (ligne.startsWith("generateur(")) {
+                if (ligne.toLowerCase().startsWith("generateur(")) {
                     if (etape > 0)
                         throw new IllegalArgumentException("ligne " + numeroLigne +
                                 ") : générateur après les maisons -> " + ligne);
@@ -364,7 +364,7 @@ public class Reseau {
                 // -------------------------
                 // MAISON
                 // -------------------------
-                if (ligne.startsWith("maison(")) {
+                if (ligne.toLowerCase().startsWith("maison(")) {
                     if (etape > 1)
                         throw new IllegalArgumentException("ligne " + numeroLigne +
                                 ") : maison après les connexions -> " + ligne);
@@ -384,7 +384,7 @@ public class Reseau {
                 // -------------------------
                 // CONNEXION
                 // -------------------------
-                if (ligne.startsWith("connexion(")) {
+                if (ligne.toLowerCase().startsWith("connexion(")) {
                     etape = 2;
 
                     try {
@@ -405,7 +405,7 @@ public class Reseau {
 
             // Vérification finale
             if (!isValide()) {
-                throw new IllegalStateException("Certaines maisons ne sont pas connectées !");
+                throw new IllegalStateException(" Certaines maisons ne sont pas connectées )");
             }
 
         } catch (IOException e) {
@@ -436,7 +436,7 @@ public class Reseau {
         }
 
         String nom = parts[0];
-        String type = parts[1];
+        String type = parts[1].toUpperCase();
 
         TypeConso conso;
 
@@ -527,6 +527,39 @@ public class Reseau {
             i++;
         }
         return reseau;
+    }
+    public static void sauvegarder(Reseau reseau, String path) throws IOException {
+        try (FileWriter fw = new FileWriter(path)) {
+
+            // 1) générateurs
+            for (Generateur g : reseau.getConnexions().keySet()) {
+                fw.write("generateur(" + g.getNom() + "," + g.getCapacite() + ").\n");
+            }
+
+            // 2) maisons (connectées + non connectées, sans doublons)
+            Set<String> dejaEcrites = new HashSet<>();
+
+            for (java.util.List<Maison> liste : reseau.getConnexions().values()) {
+                for (Maison m : liste) {
+                    if (dejaEcrites.add(m.getNom())) {
+                        fw.write("maison(" + m.getNom() + "," + m.getTypeConso().name() + ").\n");
+                    }
+                }
+            }
+
+            for (Maison m : reseau.getMaisonsNonConnectees()) {
+                if (dejaEcrites.add(m.getNom())) {
+                    fw.write("maison(" + m.getNom() + "," + m.getTypeConso().name() + ").\n");
+                }
+            }
+
+            // 3) connexions
+            for (Generateur g : reseau.getConnexions().keySet()) {
+                for (Maison m : reseau.getConnexions().get(g)) {
+                    fw.write("connexion(" + g.getNom() + "," + m.getNom() + ").\n");
+                }
+            }
+        }
     }
 }
 

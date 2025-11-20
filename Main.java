@@ -8,12 +8,13 @@
 package main.java.com.example;
 
 import java.util.Scanner;
+import java.io.IOException; // <-- AJOUT
 import main.java.com.example.reseau.*;
 import org.junit.jupiter.api.Test;
 
 public class Main {
 
-    // --- Menu de calcul (réutilisé en mode fichier + mode manuel) ---bb
+    // --- Menu de calcul (réutilisé en mode fichier + mode manuel)
     private static void menuCalcul(Scanner scanner, Reseau reseau) {
         int choix;
         while (true) {
@@ -89,6 +90,69 @@ public class Main {
         }
     }
 
+    // ================================
+    //  MENU PARTIE 2 (mode fichier)
+    // ================================
+    private static void menuPartie2(Scanner scanner, Reseau reseau, int lambda) {
+        while (true) {
+            System.out.println("\n===== MENU (MODE FICHIER) =====");
+            System.out.println("1) Résolution automatique");
+            System.out.println("2) Sauvegarder la solution actuelle");
+            System.out.println("3) Fin");
+            System.out.print("Votre choix : ");
+
+            // Gestion erreur de type (abc, 1.5, etc.)
+            if (!scanner.hasNextInt()) {
+                System.out.println("Veuillez entrer un nombre entier (1, 2 ou 3) !");
+                scanner.next(); // on consomme la mauvaise entrée
+                continue;
+            }
+
+            int choix = scanner.nextInt();
+            scanner.nextLine(); // vider le buffer
+
+            switch (choix) {
+                case 1 -> {
+                    System.out.println("\n=== Résolution automatique ===");
+                    // On suppose que ton algoNaif est implémenté dans Reseau
+                    // k (nombre d’itérations) est ici choisi arbitrairement, tu peux ajuster
+                    Reseau nouvelleSolution = reseau.algoNaif(reseau, lambda, 2000);
+
+                    System.out.println("Coût de la solution trouvée : " + nouvelleSolution.calculerCout());
+                    nouvelleSolution.afficher();
+
+                    // On remplace le réseau courant par la meilleure solution trouvée
+                    reseau = nouvelleSolution;
+                }
+
+                case 2 -> {
+                    System.out.print("Entrez le nom du fichier de sauvegarde : ");
+                    String nomFichier = scanner.nextLine().trim();
+
+                    if (nomFichier.isEmpty()) {
+                        System.out.println("Nom de fichier invalide.");
+                        break;
+                    }
+
+                    try {
+                        // Méthode statique dans Reseau (voir plus bas)
+                        Reseau.sauvegarder(reseau, nomFichier);
+                        System.out.println("Solution actuelle sauvegardée dans : " + nomFichier);
+                    } catch (IOException e) {
+                        System.out.println("Erreur lors de la sauvegarde : " + e.getMessage());
+                    }
+                }
+
+                case 3 -> {
+                    System.out.println("Fin du programme.");
+                    return;
+                }
+
+                default -> System.out.println("Choix invalide ! Veuillez taper 1, 2 ou 3.");
+            }
+        }
+    }
+
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
         Reseau reseau = new Reseau();
@@ -98,14 +162,33 @@ public class Main {
         // ============================
         if (args.length >= 1) {
             String path = args[0];
+
+            // λ passé en argument (optionnel). Par défaut λ = 10.
+            int lambda = 10;
+            if (args.length >= 2) {
+                try {
+                    lambda = Integer.parseInt(args[1]);
+                } catch (NumberFormatException e) {
+                    System.out.println("Valeur de λ invalide, la valeur 10 sera utilisée par défaut.");
+                }
+            }
+
             try {
                 reseau.chargerReseauDepuisFichier(path);
-                System.out.println(" Réseau chargé depuis le fichier : " + path);
+                System.out.println("Réseau chargé depuis le fichier : " + path);
                 reseau.afficher();
-                menuCalcul(scanner, reseau);
+
+                // Ici, on suppose que chargerReseauDepuisFichier vérifie déjà
+                // les contraintes (maisons connectées exactement à un générateur)
+                // et lève IllegalStateException / IllegalArgumentException
+                // avec le numéro de ligne en cas de problème.
+
+                // Une fois le fichier considéré comme correct => menu à 3 options
+                menuPartie2(scanner, reseau, lambda);
 
             } catch (IllegalArgumentException | IllegalStateException e) {
-                System.out.println("Erreur lors du chargement du fichier (" + e.getMessage());
+                // e.getMessage() doit contenir l’explication + la ligne (géré dans chargerReseauDepuisFichier)
+                System.err.println("Erreur lors du chargement du fichier : " + e.getMessage());
             } finally {
                 scanner.close();
             }
@@ -226,11 +309,11 @@ public class Main {
                         scanner.close();
                         return;
                     } else {
-                        System.out.println("  Votre réseau n'est pas valide, vérifiez que toutes les maisons sont connectées");
+                        System.err.println("Votre réseau n'est pas valide, vérifiez que toutes les maisons sont connectées");
                     }
                 }
 
-                default -> System.out.println("Choix invalide !");
+                default -> System.err.println("Choix invalide !");
             }
         } while (true);
     }
