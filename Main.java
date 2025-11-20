@@ -93,9 +93,10 @@ public class Main {
     // ================================
     //  MENU PARTIE 2 (mode fichier)
     // ================================
-    private static void menuPartie2(Scanner scanner, Reseau reseau, int lambda) {
+    private static void menuPartie2(Scanner scanner, Reseau reseau) {
         while (true) {
             System.out.println("\n===== MENU (MODE FICHIER) =====");
+            System.out.println("coût: " + reseau.calculerCout());
             System.out.println("1) Résolution automatique");
             System.out.println("2) Sauvegarder la solution actuelle");
             System.out.println("3) Fin");
@@ -116,7 +117,7 @@ public class Main {
                     System.out.println("\n=== Résolution automatique ===");
                     // On suppose que ton algoNaif est implémenté dans Reseau
                     // k (nombre d’itérations) est ici choisi arbitrairement, tu peux ajuster
-                    Reseau nouvelleSolution = reseau.algoNaif(reseau, lambda, 2000);
+                    Reseau nouvelleSolution = reseau.algoNaif(reseau, 2000);
 
                     System.out.println("Coût de la solution trouvée : " + nouvelleSolution.calculerCout());
                     nouvelleSolution.afficher();
@@ -168,6 +169,7 @@ public class Main {
             if (args.length >= 2) {
                 try {
                     lambda = Integer.parseInt(args[1]);
+                    reseau.setLambda(lambda);
                 } catch (NumberFormatException e) {
                     System.out.println("Valeur de λ invalide, la valeur 10 sera utilisée par défaut.");
                 }
@@ -184,7 +186,7 @@ public class Main {
                 // avec le numéro de ligne en cas de problème.
 
                 // Une fois le fichier considéré comme correct => menu à 3 options
-                menuPartie2(scanner, reseau, lambda);
+                menuPartie2(scanner, reseau);
 
             } catch (IllegalArgumentException | IllegalStateException e) {
                 // e.getMessage() doit contenir l’explication + la ligne (géré dans chargerReseauDepuisFichier)

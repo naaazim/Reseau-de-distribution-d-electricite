@@ -10,6 +10,16 @@ public class Reseau {
     private Map<Generateur, List<Maison>> connexions; // Générateur -> liste de maisons
     private List<Maison> maisonsNonConnectees;        // Maisons créées mais pas encore reliées
     private int capaciteTotale;
+    private int lambda = 10;
+    private int consommationTotale;
+
+    public Reseau() {
+        //Utilisation de linkedHashMap pour conserver l'ordre d'ajout des éléments
+        connexions = new LinkedHashMap<>();
+        maisonsNonConnectees = new ArrayList<>();
+        capaciteTotale = 0;
+        consommationTotale = 0;
+    }
 
     public Map<Generateur, List<Maison>> getConnexions() {
         return connexions;
@@ -19,15 +29,10 @@ public class Reseau {
         return maisonsNonConnectees;
     }
 
-    private int consommationTotale;
-    private static final int LAMBDA = 10; // Sévérité de la pénalisation 
+    public int getLambda() { return lambda; }
 
-    public Reseau() {
-        //Utilisation de linkedHashMap pour conserver l'ordre d'ajout des éléments
-        connexions = new LinkedHashMap<>();
-        maisonsNonConnectees = new ArrayList<>();
-        capaciteTotale = 0;
-        consommationTotale = 0;
+    public void setLambda(int lambda) {
+        this.lambda = lambda;
     }
 
     // --- Ajouter ou mettre à jour un générateur ---
@@ -270,7 +275,8 @@ public class Reseau {
     }
 
     public double calculerCout(){
-        return dispersion() + LAMBDA * surcharge();
+        // Sévérité de la pénalisation
+        return dispersion() + lambda * surcharge();
     }
     public void modifierConnexion(String ancienneMaison, String ancienGenerateur,String nouvelleMaison, String nouveauGenerateur) {
         Maison maison = getMaisonParNom(ancienneMaison);
@@ -485,22 +491,22 @@ public class Reseau {
         return liste.get(new Random().nextInt(liste.size()));
     }
 
-    public Maison getMaisonAleatoireComplet() {
-        List<Maison> toutes = new ArrayList<>();
+    public Maison getMaisonAleatoire() {
+        List<Maison> toutesLesMaison = new ArrayList<>();
         for (List<Maison> l : connexions.values()) {
-            toutes.addAll(l);
+            toutesLesMaison.addAll(l);
         }
-        toutes.addAll(maisonsNonConnectees);
+        toutesLesMaison.addAll(maisonsNonConnectees);
 
-        if (toutes.isEmpty()) return null;
-        return toutes.get(new Random().nextInt(toutes.size()));
+        if (toutesLesMaison.isEmpty()) return null;
+        return toutesLesMaison.get(new Random().nextInt(toutesLesMaison.size()));
     }
 
-    public Reseau algoNaif(Reseau reseau, int lambda, int k) {
+    public Reseau algoNaif(Reseau reseau, int k) {
         int i = 0;
 
         while (i < k) {
-            Maison m = reseau.getMaisonAleatoireComplet();
+            Maison m = reseau.getMaisonAleatoire();
             Generateur g = reseau.getGenerateurAleatoire();
 
             if (m == null || g == null) break;
@@ -539,7 +545,7 @@ public class Reseau {
             // 2) maisons (connectées + non connectées, sans doublons)
             Set<String> dejaEcrites = new HashSet<>();
 
-            for (java.util.List<Maison> liste : reseau.getConnexions().values()) {
+            for (List<Maison> liste : reseau.getConnexions().values()) {
                 for (Maison m : liste) {
                     if (dejaEcrites.add(m.getNom())) {
                         fw.write("maison(" + m.getNom() + "," + m.getTypeConso().name() + ").\n");
