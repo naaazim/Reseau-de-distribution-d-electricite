@@ -5,12 +5,14 @@
  *      - FERHANI Ales Amazigh
  *      - BENOUFELLA Mohamed Yacine
  */
-package main.java.com.example;
+package com.example;
 
 import java.util.Scanner;
-import java.io.IOException; // <-- AJOUT
-import main.java.com.example.reseau.*;
-import org.junit.jupiter.api.Test;
+import java.io.IOException;
+
+import com.example.factory.GenerateurFactory;
+import com.example.factory.MaisonFactory;
+import com.example.reseau.*;
 
 public class Main {
 
@@ -75,8 +77,7 @@ public class Main {
                             ancienneMaison.getNom(),
                             ancienGen.getNom(),
                             nouvelleMaison.getNom(),
-                            nouveauGen.getNom()
-                    );
+                            nouveauGen.getNom());
                 }
                 case 3 -> {
                     reseau.afficher();
@@ -91,7 +92,7 @@ public class Main {
     }
 
     // ================================
-    //  MENU PARTIE 2 (mode fichier)
+    // MENU PARTIE 2 (mode fichier)
     // ================================
     private static void menuPartie2(Scanner scanner, Reseau reseau) {
         while (true) {
@@ -189,7 +190,8 @@ public class Main {
                 menuPartie2(scanner, reseau);
 
             } catch (IllegalArgumentException | IllegalStateException e) {
-                // e.getMessage() doit contenir l’explication + la ligne (géré dans chargerReseauDepuisFichier)
+                // e.getMessage() doit contenir l’explication + la ligne (géré dans
+                // chargerReseauDepuisFichier)
                 System.err.println("Erreur lors du chargement du fichier : " + e.getMessage());
             } finally {
                 scanner.close();
@@ -240,7 +242,8 @@ public class Main {
                 case 3 -> {
                     if (!reseau.isConnexionPossible()) {
 
-                        //Afficher les options de connexion disponibles (Générateurs + maisons non connectées)
+                        // Afficher les options de connexion disponibles (Générateurs + maisons non
+                        // connectées)
                         reseau.afficherOptions();
                         // Demander à l'utilisateur la maison et le générateur
                         System.out.print("Entrez la maison et le générateur à connecter (ex: M1 G1 ou G1 M1): ");
@@ -271,13 +274,15 @@ public class Main {
                             reseau.ajouterConnexion(maison.getNom(), generateur.getNom());
                         }
                     } else {
-                        System.out.println("Aucune connexion possible : vérifiez que vous avez au moins un générateur et une maison non connectée.");
+                        System.out.println(
+                                "Aucune connexion possible : vérifiez que vous avez au moins un générateur et une maison non connectée.");
                     }
                 }
 
                 // --- Supprimer une connexion ---
                 case 4 -> {
-                    System.out.print("Pour supprimer une connexion existante, entrez la maison et le générateur (ex: M1 G1 ou G1 M1): ");
+                    System.out.print(
+                            "Pour supprimer une connexion existante, entrez la maison et le générateur (ex: M1 G1 ou G1 M1): ");
                     String ligne = scanner.nextLine().trim();
                     String[] parties = ligne.split("\\s+");
                     if (parties.length != 2) {
@@ -311,7 +316,8 @@ public class Main {
                         scanner.close();
                         return;
                     } else {
-                        System.err.println("Votre réseau n'est pas valide, vérifiez que toutes les maisons sont connectées");
+                        System.err.println(
+                                "Votre réseau n'est pas valide, vérifiez que toutes les maisons sont connectées");
                     }
                 }
 

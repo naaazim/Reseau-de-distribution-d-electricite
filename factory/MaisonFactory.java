@@ -1,4 +1,7 @@
-package main.java.com.example.reseau;
+package com.example.factory;
+
+import com.example.reseau.Maison;
+import com.example.reseau.TypeConso;
 
 import java.util.Scanner;
 
@@ -10,7 +13,7 @@ public class MaisonFactory {
         this.scanner = new Scanner(System.in);
     }
 
-    public Maison creerMaison(){
+    public Maison creerMaison() {
         System.out.print("Entrez le nom et le type de consommation (BASSE - NORMAL - FORTE) (ex: M1 NORMAL) : ");
         String ligne = scanner.nextLine().trim(); // lit toute la ligne
 

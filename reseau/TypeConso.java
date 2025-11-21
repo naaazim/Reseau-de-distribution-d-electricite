@@ -1,10 +1,15 @@
-package main.java.com.example.reseau;
+package com.example.reseau;
 
 public enum TypeConso {
-    BASSE(10),NORMAL(20),FORTE(40);
+    BASSE(10), NORMAL(20), FORTE(40);
+
     private final int consommation;
-    private TypeConso(int consommation){
+
+    private TypeConso(int consommation) {
         this.consommation = consommation;
     }
-    public int getConsommation(){ return consommation; }
+
+    public int getConsommation() {
+        return consommation;
+    }
 }

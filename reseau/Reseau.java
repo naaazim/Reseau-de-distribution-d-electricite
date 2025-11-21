@@ -1,4 +1,4 @@
-package main.java.com.example.reseau;
+package com.example.reseau;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -8,13 +8,13 @@ import java.util.*;
 
 public class Reseau {
     private Map<Generateur, List<Maison>> connexions; // Générateur -> liste de maisons
-    private List<Maison> maisonsNonConnectees;        // Maisons créées mais pas encore reliées
+    private List<Maison> maisonsNonConnectees; // Maisons créées mais pas encore reliées
     private int capaciteTotale;
     private int lambda = 10;
     private int consommationTotale;
 
     public Reseau() {
-        //Utilisation de linkedHashMap pour conserver l'ordre d'ajout des éléments
+        // Utilisation de linkedHashMap pour conserver l'ordre d'ajout des éléments
         connexions = new LinkedHashMap<>();
         maisonsNonConnectees = new ArrayList<>();
         capaciteTotale = 0;
@@ -29,7 +29,9 @@ public class Reseau {
         return maisonsNonConnectees;
     }
 
-    public int getLambda() { return lambda; }
+    public int getLambda() {
+        return lambda;
+    }
 
     public void setLambda(int lambda) {
         this.lambda = lambda;
@@ -126,7 +128,6 @@ public class Reseau {
                 + consommationTotale + " kW.");
     }
 
-
     // --- Ajouter une connexion (relier une maison à un générateur) ---
     public void ajouterConnexion(String nomMaison, String nomGenerateur) {
         Generateur g = getGenerateurParNom(nomGenerateur);
@@ -141,7 +142,7 @@ public class Reseau {
             return;
         }
 
-        // Vérifie si  déjà connectée
+        // Vérifie si déjà connectée
         for (List<Maison> liste : connexions.values()) {
             if (liste.contains(m)) {
                 throw new IllegalArgumentException("La maison " + nomMaison + " est déjà connectée à un générateur.");
@@ -153,31 +154,37 @@ public class Reseau {
         System.out.println("Connexion ajoutée : " + g.getNom() + " -> " + m.getNom() +
                 " | Consommation totale : " + consommationTotale + " kW");
     }
-    public void supprimerConnexion(String nomMaison, String nomGenerateur){
+
+    public void supprimerConnexion(String nomMaison, String nomGenerateur) {
         Generateur g = getGenerateurParNom(nomGenerateur);
         Maison m = getMaisonParNom(nomMaison);
-        if(g != null){
-            if(connexions.get(g).contains(m)){
+        if (g != null) {
+            if (connexions.get(g).contains(m)) {
                 connexions.get(g).remove(m);
                 maisonsNonConnectees.add(m);
                 System.out.println("Connexion supprimée avec succés");
             }
-        }else{
+        } else {
             System.out.println("La maison " + nomMaison + " n'est pas connectée au générateur " + nomGenerateur);
         }
     }
-    public boolean isConnexionPossible(){
+
+    public boolean isConnexionPossible() {
         return maisonsNonConnectees.isEmpty() || connexions.isEmpty();
     }
-    //Cette méthode sera utilisée au moment de l'ajout d'une connexion et permettera d'afficher les options de connexions disponibles (Generateurs + maisons non connectées)
-    public void afficherOptions(){
-        for(Maison m : maisonsNonConnectees){
+
+    // Cette méthode sera utilisée au moment de l'ajout d'une connexion et
+    // permettera d'afficher les options de connexions disponibles (Generateurs +
+    // maisons non connectées)
+    public void afficherOptions() {
+        for (Maison m : maisonsNonConnectees) {
             System.out.println("Maisons non connectées");
             System.out.print("  - ");
             m.afficher();
         }
         afficher();
     }
+
     // --- Afficher le réseau complet ---
     public void afficher() {
         System.out.println("\n===== RÉSEAU ÉLECTRIQUE =====");
@@ -201,31 +208,37 @@ public class Reseau {
                 }
             }
         }
-        System.out.println("\nCapacité totale : " + capaciteTotale + " kW | Consommation totale : " + consommationTotale + " kW");
+        System.out.println(
+                "\nCapacité totale : " + capaciteTotale + " kW | Consommation totale : " + consommationTotale + " kW");
     }
 
     public Generateur getGenerateurParNom(String nom) {
         for (Generateur g : connexions.keySet()) {
-            if (g.getNom().equalsIgnoreCase(nom)) return g;
+            if (g.getNom().equalsIgnoreCase(nom))
+                return g;
         }
         return null;
     }
 
     public Maison getMaisonParNom(String nom) {
-        
+
         for (List<Maison> liste : connexions.values()) {
             for (Maison m : liste) {
-                if (m.getNom().equalsIgnoreCase(nom)) return m;
+                if (m.getNom().equalsIgnoreCase(nom))
+                    return m;
             }
         }
         for (Maison m : maisonsNonConnectees) {
-            if (m.getNom().equalsIgnoreCase(nom)) return m;
+            if (m.getNom().equalsIgnoreCase(nom))
+                return m;
         }
         return null;
     }
-    public boolean isValide(){
+
+    public boolean isValide() {
         return maisonsNonConnectees.isEmpty();
     }
+
     public double getTauxUtilisation(Generateur g) {
         if (!connexions.containsKey(g)) {
             System.out.println(" Générateur " + g.getNom() + " non trouvé dans le réseau.");
@@ -237,11 +250,14 @@ public class Reseau {
             charge += m.getTypeConso().getConsommation();
         }
 
-        if (g.getCapacite() == 0) return 0; // éviter division par zéro
+        if (g.getCapacite() == 0)
+            return 0; // éviter division par zéro
         return (double) charge / g.getCapacite();
     }
+
     public double dispersion() {
-        if (connexions.isEmpty()) return 0;
+        if (connexions.isEmpty())
+            return 0;
 
         Map<Generateur, Double> taux = new HashMap<>();
         double somme = 0;
@@ -261,24 +277,28 @@ public class Reseau {
 
         return dispersion;
     }
-    public double surcharge(){
-        if(connexions.isEmpty())return 0;
+
+    public double surcharge() {
+        if (connexions.isEmpty())
+            return 0;
         double surcharge = 0;
-        for(Generateur g : connexions.keySet()){
+        for (Generateur g : connexions.keySet()) {
             double chargeActuelle = 0;
-            for(Maison m : connexions.get(g)){
+            for (Maison m : connexions.get(g)) {
                 chargeActuelle += m.getTypeConso().getConsommation();
             }
-            surcharge += Math.max(0, (double)(chargeActuelle - g.getCapacite()) / g.getCapacite());
+            surcharge += Math.max(0, (double) (chargeActuelle - g.getCapacite()) / g.getCapacite());
         }
         return surcharge;
     }
 
-    public double calculerCout(){
+    public double calculerCout() {
         // Sévérité de la pénalisation
         return dispersion() + lambda * surcharge();
     }
-    public void modifierConnexion(String ancienneMaison, String ancienGenerateur,String nouvelleMaison, String nouveauGenerateur) {
+
+    public void modifierConnexion(String ancienneMaison, String ancienGenerateur, String nouvelleMaison,
+            String nouveauGenerateur) {
         Maison maison = getMaisonParNom(ancienneMaison);
         Generateur ancienGen = getGenerateurParNom(ancienGenerateur);
         Generateur nouveauGen = getGenerateurParNom(nouveauGenerateur);
@@ -306,13 +326,14 @@ public class Reseau {
         connexions.get(nouveauGen).add(maison);
 
         System.out.println("Connexion modifiée : " + maison.getNom() +
-                        " passe de " + ancienGen.getNom() + " à " + nouveauGen.getNom() + ".");
+                " passe de " + ancienGen.getNom() + " à " + nouveauGen.getNom() + ".");
     }
 
     public Maison getMaisonDepuisLigne(String[] parts) {
         for (String s : parts) {
             Maison m = getMaisonParNom(s);
-            if (m != null) return m;
+            if (m != null)
+                return m;
         }
         return null;
     }
@@ -320,12 +341,13 @@ public class Reseau {
     public Generateur getGenerateurDepuisLigne(String[] parts) {
         for (String s : parts) {
             Generateur g = getGenerateurParNom(s);
-            if (g != null) return g;
+            if (g != null)
+                return g;
         }
         return null;
     }
 
-    // --- Méthode pour charger un réseau depuis un fichier 
+    // --- Méthode pour charger un réseau depuis un fichier
     public void chargerReseauDepuisFichier(String path) {
         try (BufferedReader br = new BufferedReader(new FileReader(path))) {
 
@@ -337,12 +359,12 @@ public class Reseau {
                 numeroLigne++;
                 ligne = ligne.trim();
 
-                if (ligne.isEmpty()) continue;
+                if (ligne.isEmpty())
+                    continue;
 
                 if (!ligne.endsWith(".")) {
                     throw new IllegalArgumentException(
-                            "ligne " + numeroLigne + ") : ligne sans point final -> " + ligne
-                    );
+                            "ligne " + numeroLigne + ") : ligne sans point final -> " + ligne);
                 }
 
                 ligne = ligne.substring(0, ligne.length() - 1);
@@ -361,8 +383,7 @@ public class Reseau {
                         parseGenerateur(ligne);
                     } catch (Exception e) {
                         throw new IllegalArgumentException(
-                                "ligne " + numeroLigne + ") : " + e.getMessage()
-                        );
+                                "ligne " + numeroLigne + ") : " + e.getMessage());
                     }
                     continue;
                 }
@@ -381,8 +402,7 @@ public class Reseau {
                         parseMaison(ligne);
                     } catch (Exception e) {
                         throw new IllegalArgumentException(
-                                "ligne " + numeroLigne + ") : " + e.getMessage()
-                        );
+                                "ligne " + numeroLigne + ") : " + e.getMessage());
                     }
                     continue;
                 }
@@ -397,16 +417,14 @@ public class Reseau {
                         parseConnexion(ligne);
                     } catch (Exception e) {
                         throw new IllegalArgumentException(
-                                "ligne " + numeroLigne + ") : " + e.getMessage()
-                        );
+                                "ligne " + numeroLigne + ") : " + e.getMessage());
                     }
                     continue;
                 }
 
                 // Si rien ne correspond
                 throw new IllegalArgumentException(
-                        "ligne " + numeroLigne + ") : syntaxe inconnue -> " + ligne
-                );
+                        "ligne " + numeroLigne + ") : syntaxe inconnue -> " + ligne);
             }
 
             // Vérification finale
@@ -433,6 +451,7 @@ public class Reseau {
 
         ajouterGenerateur(new Generateur(nom, capacite));
     }
+
     private void parseMaison(String ligne) {
         ligne = ligne.substring("maison(".length(), ligne.length() - 1);
         String[] parts = ligne.split(",");
@@ -454,6 +473,7 @@ public class Reseau {
 
         ajouterMaison(new Maison(nom, conso));
     }
+
     private void parseConnexion(String ligne) {
         ligne = ligne.substring("connexion(".length(), ligne.length() - 1);
         String[] parts = ligne.split(",");
@@ -485,9 +505,11 @@ public class Reseau {
 
         throw new IllegalArgumentException("Connexion impossible : " + a + " - " + b);
     }
+
     public Generateur getGenerateurAleatoire() {
         List<Generateur> liste = new ArrayList<>(connexions.keySet());
-        if (liste.isEmpty()) return null;
+        if (liste.isEmpty())
+            return null;
         return liste.get(new Random().nextInt(liste.size()));
     }
 
@@ -498,7 +520,8 @@ public class Reseau {
         }
         toutesLesMaison.addAll(maisonsNonConnectees);
 
-        if (toutesLesMaison.isEmpty()) return null;
+        if (toutesLesMaison.isEmpty())
+            return null;
         return toutesLesMaison.get(new Random().nextInt(toutesLesMaison.size()));
     }
 
@@ -509,7 +532,8 @@ public class Reseau {
             Maison m = reseau.getMaisonAleatoire();
             Generateur g = reseau.getGenerateurAleatoire();
 
-            if (m == null || g == null) break;
+            if (m == null || g == null)
+                break;
 
             // Sauvegarde pour retour arrière
             double ancienCout = reseau.calculerCout();
@@ -534,6 +558,7 @@ public class Reseau {
         }
         return reseau;
     }
+
     public static void sauvegarder(Reseau reseau, String path) throws IOException {
         try (FileWriter fw = new FileWriter(path)) {
 
@@ -568,4 +593,3 @@ public class Reseau {
         }
     }
 }
-
