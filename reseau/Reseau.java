@@ -553,11 +553,63 @@ public class Reseau {
             if (nouveauCout > ancienCout) {
                 reseau.modifierConnexion(m.getNom(), g.getNom(), m.getNom(), ancienGen);
             }
-
             i++;
         }
         return reseau;
     }
+    // --- ALGO OPTIMISÉ
+    public static Reseau algoOptimise(Reseau reseau) {
+
+        boolean ameliorationTrouvee = true;
+
+        while (ameliorationTrouvee) {
+            ameliorationTrouvee = false;
+
+            List<Maison> toutesLesMaison = new ArrayList<>();
+            for (List<Maison> l : reseau.getConnexions().values()) {
+                toutesLesMaison.addAll(l);
+            }
+
+            for (Maison maison : toutesLesMaison) {
+
+                Generateur ancienGenerateur = null;
+                for (Generateur generateur : reseau.getConnexions().keySet()) {
+                    if (reseau.getConnexions().get(generateur).contains(maison)) {
+                        ancienGenerateur = generateur;
+                        break;
+                    }
+                }
+
+                for (Generateur generateur : reseau.getConnexions().keySet()) {
+                    if (!generateur.equals(ancienGenerateur)) {
+
+                        double ancienCout = reseau.calculerCout();
+
+                        reseau.modifierConnexion(maison.getNom(),
+                                ancienGenerateur.getNom(),
+                                maison.getNom(),
+                                generateur.getNom());
+
+                        double nouveauCout = reseau.calculerCout();
+
+                        if (nouveauCout > ancienCout) {
+                            reseau.modifierConnexion(maison.getNom(),
+                                    generateur.getNom(),
+                                    maison.getNom(),
+                                    ancienGenerateur.getNom());
+                        } else {
+                            ancienGenerateur = generateur;
+                            ameliorationTrouvee = true;
+                        }
+                    }
+                }
+            }
+        }
+
+        return reseau;
+    }
+
+
 
     public static void sauvegarder(Reseau reseau, String path) throws IOException {
         try (FileWriter fw = new FileWriter(path)) {

@@ -118,13 +118,11 @@ public class Main {
                     System.out.println("\n=== Résolution automatique ===");
                     // On suppose que ton algoNaif est implémenté dans Reseau
                     // k (nombre d’itérations) est ici choisi arbitrairement, tu peux ajuster
-                    Reseau nouvelleSolution = reseau.algoNaif(reseau, 2000);
+                    Reseau nouvelleSolution = Reseau.algoOptimise(reseau);
 
                     System.out.println("Coût de la solution trouvée : " + nouvelleSolution.calculerCout());
                     nouvelleSolution.afficher();
 
-                    // On remplace le réseau courant par la meilleure solution trouvée
-                    reseau = nouvelleSolution;
                 }
 
                 case 2 -> {
