@@ -23,28 +23,29 @@ public class Main {
      * @return L'entier validé.
      */
     private static int askForInt(Scanner scanner) {
-        while (true) {
-            String line = scanner.nextLine().trim();
-            String[] parts = line.split("\\s+");
+        String line = scanner.nextLine().trim();
+        
+        if (line.isEmpty()) {
+            System.out.println("\nEntrée invalide. Aucune valeur n'a été saisie.");
+            return -1;
+        }
 
-            // Vérifier qu'il n'y a qu'un seul token et qu'il n'est pas vide
-            if (parts.length != 1 || parts[0].isEmpty()) {
-                System.err.println("Entrée invalide. Veuillez entrer un seul nombre entier.");
-                continue;
-            }
+        String[] parts = line.split("\\s+");
+        if (parts.length != 1) {
+            System.out.println("\nEntrée invalide. Veuillez entrer un seul nombre entier.");
+            return -1;
+        }
 
-            try {
-                return Integer.parseInt(parts[0]);
-            } catch (NumberFormatException e) {
-                System.err.println("Entrée invalide. '" + parts[0] + "' n'est pas un nombre entier valide.");
-                continue;
-            }
+        try {
+            return Integer.parseInt(parts[0]);
+        } catch (NumberFormatException e) {
+            System.out.println("\nEntrée invalide. '" + parts[0] + "' n'est pas un nombre entier valide.");
+            return -1;
         }
     }
 
     // --- Menu de calcul (réutilisé en mode fichier + mode manuel)
     private static void menuCalcul(Scanner scanner, Reseau reseau) {
-        int choix;
         while (true) {
             System.out.println("\n===== MENU CALCUL =====");
             System.out.println("1) Calculer le coût du réseau électrique actuel");
@@ -53,7 +54,10 @@ public class Main {
             System.out.println("4) Fin");
             System.out.print("Votre choix : ");
 
-            choix = askForInt(scanner);
+            int choix = askForInt(scanner);
+            if (choix == -1) {
+                continue; // Réaffiche le menu si l'entrée est invalide
+            }
 
             switch (choix) {
                 case 1 -> {
@@ -65,7 +69,7 @@ public class Main {
                     String ancienne = scanner.nextLine().trim();
                     String[] parts1 = ancienne.split("\\s+");
                     if (parts1.length != 2) {
-                        System.err.println("Format invalide !");
+                        System.out.println("Format invalide !");
                         break;
                     }
 
@@ -73,7 +77,7 @@ public class Main {
                     Generateur ancienGen = reseau.getGenerateurDepuisLigne(parts1);
 
                     if (ancienneMaison == null || ancienGen == null) {
-                        System.err.println("Connexion invalide (maison ou générateur introuvable).");
+                        System.out.println("Connexion invalide (maison ou générateur introuvable).");
                         break;
                     }
 
@@ -81,7 +85,7 @@ public class Main {
                     String nouvelle = scanner.nextLine().trim();
                     String[] parts2 = nouvelle.split("\\s+");
                     if (parts2.length != 2) {
-                        System.err.println("Format invalide !");
+                        System.out.println("Format invalide !");
                         break;
                     }
 
@@ -89,7 +93,7 @@ public class Main {
                     Generateur nouveauGen = reseau.getGenerateurDepuisLigne(parts2);
 
                     if (nouvelleMaison == null || nouveauGen == null) {
-                        System.err.println("Nouvelle connexion invalide (maison ou générateur introuvable).");
+                        System.out.println("Nouvelle connexion invalide (maison ou générateur introuvable).");
                         break;
                     }
 
@@ -104,7 +108,7 @@ public class Main {
                     System.out.println("Fin du programme.");
                     return;
                 }
-                default -> System.err.println("Choix invalide !");
+                default -> System.out.println("Choix invalide !");
             }
         }
     }
@@ -122,6 +126,9 @@ public class Main {
             System.out.print("Votre choix : ");
 
             int choix = askForInt(scanner);
+            if (choix == -1) {
+                continue; // Réaffiche le menu si l'entrée est invalide
+            }
 
             switch (choix) {
                 case 1 -> {
@@ -136,7 +143,7 @@ public class Main {
                     String nomFichier = scanner.nextLine().trim();
 
                     if (nomFichier.isEmpty()) {
-                        System.err.println("Nom de fichier invalide.");
+                        System.out.println("Nom de fichier invalide.");
                         break;
                     }
 
@@ -144,7 +151,7 @@ public class Main {
                         Reseau.sauvegarder(reseau, nomFichier);
                         System.out.println("Solution actuelle sauvegardée dans : " + nomFichier);
                     } catch (IOException e) {
-                        System.err.println("Erreur lors de la sauvegarde : " + e.getMessage());
+                        System.out.println("Erreur lors de la sauvegarde : " + e.getMessage());
                     }
                 }
 
@@ -153,158 +160,157 @@ public class Main {
                     return;
                 }
 
-                default -> System.err.println("Choix invalide ! Veuillez taper 1, 2 ou 3.");
+                default -> System.out.println("Choix invalide ! Veuillez taper 1, 2 ou 3.");
             }
         }
     }
 
     public static void main(String[] args) {
-        Scanner scanner = new Scanner(System.in);
-        Reseau reseau = new Reseau();
+        try (Scanner scanner = new Scanner(System.in)) {
+            Reseau reseau = new Reseau();
 
-        // ============================
-        // MODE FICHIER (PARTIE 2)
-        // ============================
-        if (args.length >= 1) {
-            String path = args[0];
+            // ============================
+            // MODE FICHIER (PARTIE 2)
+            // ============================
+            if (args.length >= 1) {
+                String path = args[0];
 
-            int lambda = 10;
-            if (args.length >= 2) {
+                int lambda = 10;
+                if (args.length >= 2) {
+                    try {
+                        lambda = Integer.parseInt(args[1]);
+                        reseau.setLambda(lambda);
+                    } catch (NumberFormatException e) {
+                        System.out.println("Valeur de λ invalide, la valeur 10 sera utilisée par défaut.");
+                    }
+                }
+
                 try {
-                    lambda = Integer.parseInt(args[1]);
-                    reseau.setLambda(lambda);
-                } catch (NumberFormatException e) {
-                    System.out.println("Valeur de λ invalide, la valeur 10 sera utilisée par défaut.");
+                    reseau.chargerReseauDepuisFichier(path);
+                    System.out.println("Réseau chargé depuis le fichier : " + path);
+                    reseau.afficher();
+                    menuPartie2(scanner, reseau);
+                } catch (IllegalArgumentException | IllegalStateException e) {
+                    System.out.println("Erreur lors du chargement du fichier : " + e.getMessage());
                 }
+                return; // on ne passe pas au mode manuel
             }
 
-            try {
-                reseau.chargerReseauDepuisFichier(path);
-                System.out.println("Réseau chargé depuis le fichier : " + path);
-                reseau.afficher();
-                menuPartie2(scanner, reseau);
-            } catch (IllegalArgumentException | IllegalStateException e) {
-                System.err.println("Erreur lors du chargement du fichier : " + e.getMessage());
-            } finally {
-                scanner.close();
-            }
-            return; // on ne passe pas au mode manuel
+            // ============================
+            // MODE MANUEL (PARTIE 1)
+            // ============================
+            MaisonFactory maisonFactory = new MaisonFactory();
+            GenerateurFactory generateurFactory = new GenerateurFactory(scanner);
+
+            do {
+                System.out.println("\n===== MENU PRINCIPAL =====");
+                System.out.println("1) Ajouter un générateur");
+                System.out.println("2) Ajouter une maison");
+                System.out.println("3) ajouter une connexion entre une maison et un générateur existants");
+                System.out.println("4) supprimer une connexion existante entre une maison et un générateur");
+                System.out.println("5) Quitter et passer au menu calcul (si réseau valide)");
+                System.out.print("Votre choix : ");
+
+                int choix = askForInt(scanner);
+                if (choix == -1) {
+                    continue; // Réaffiche le menu si l'entrée est invalide
+                }
+
+                switch (choix) {
+                    // --- Ajouter un générateur ---
+                    case 1 -> {
+                        Generateur g = generateurFactory.creerGenerateur();
+                        if (g != null)
+                            reseau.ajouterGenerateur(g);
+                    }
+
+                    // --- Ajouter une maison ---
+                    case 2 -> {
+                        Maison m = maisonFactory.creerMaison();
+                        if (m != null)
+                            reseau.ajouterMaison(m);
+                    }
+
+                    // --- Ajouter une connexion ---
+                    case 3 -> {
+                        if (reseau.isConnexionPossible()) {
+                            System.out.println("Aucune connexion possible : vérifiez que vous avez au moins un générateur et une maison non connectée.");
+                            break;
+                        }
+
+                        reseau.afficherOptions();
+
+                        System.out.print("Entrez la maison et le générateur à connecter (ex: M1 G1 ou G1 M1): ");
+                        String ligne = scanner.nextLine().trim();
+                        String[] parties = ligne.split("\\s+");
+
+                        if (parties.length != 2) {
+                            System.out.println("Format invalide. Exemple attendu : M1 G1");
+                            break;
+                        }
+
+                        String nom1 = parties[0];
+                        String nom2 = parties[1];
+
+                        Maison maison = reseau.getMaisonParNom(nom1);
+                        Generateur generateur = reseau.getGenerateurParNom(nom2);
+
+                        if (maison == null && generateur == null) {
+                            maison = reseau.getMaisonParNom(nom2);
+                            generateur = reseau.getGenerateurParNom(nom1);
+                        }
+
+                        if (maison == null || generateur == null) {
+                            System.out.println("Maison ou générateur introuvable. Vérifiez que les deux existent.");
+                            break;
+                        }
+
+                        reseau.ajouterConnexion(maison.getNom(), generateur.getNom());
+                    }
+
+                    // --- Supprimer une connexion ---
+                    case 4 -> {
+                        System.out.print("Pour supprimer une connexion existante, entrez la maison et le générateur (ex: M1 G1 ou G1 M1): ");
+                        String ligne = scanner.nextLine().trim();
+                        String[] parties = ligne.split("\\s+");
+
+                        if (parties.length != 2) {
+                            System.out.println("Format invalide. Exemple attendu : M1 G1");
+                            break;
+                        }
+                        String nom1 = parties[0];
+                        String nom2 = parties[1];
+
+                        Maison maison = reseau.getMaisonParNom(nom1);
+                        Generateur generateur = reseau.getGenerateurParNom(nom2);
+
+                        if (maison == null && generateur == null) {
+                            maison = reseau.getMaisonParNom(nom2);
+                            generateur = reseau.getGenerateurParNom(nom1);
+                        }
+
+                        if (maison == null || generateur == null) {
+                            System.out.println("Maison ou générateur introuvable. Vérifiez que les deux existent.");
+                            break;
+                        }
+
+                        reseau.supprimerConnexion(maison.getNom(), generateur.getNom());
+                    }
+
+                    // --- Vérifier que le réseau est valide, puis menu calcul ---
+                    case 5 -> {
+                        if (reseau.isValide()) {
+                            menuCalcul(scanner, reseau);
+                            return; // fin du programme après le menu calcul
+                        } else {
+                            System.out.println(
+                                    "Votre réseau n'est pas valide, vérifiez que toutes les maisons sont connectées");
+                        }
+                    }
+
+                    default -> System.out.println("Choix invalide !");
+                }
+            } while (true);
         }
-
-        // ============================
-        // MODE MANUEL (PARTIE 1)
-        // ============================
-        MaisonFactory maisonFactory = new MaisonFactory();
-        GenerateurFactory generateurFactory = new GenerateurFactory(scanner);
-
-        int choix;
-
-        do {
-            System.out.println("\n===== MENU PRINCIPAL =====");
-            System.out.println("1) Ajouter un générateur");
-            System.out.println("2) Ajouter une maison");
-            System.out.println("3) ajouter une connexion entre une maison et un générateur existants");
-            System.out.println("4) supprimer une connexion existante entre une maison et un générateur");
-            System.out.println("5) Quitter et passer au menu calcul (si réseau valide)");
-            System.out.print("Votre choix : ");
-
-            choix = askForInt(scanner);
-
-            switch (choix) {
-                // --- Ajouter un générateur ---
-                case 1 -> {
-                    Generateur g = generateurFactory.creerGenerateur();
-                    if (g != null)
-                        reseau.ajouterGenerateur(g);
-                }
-
-                // --- Ajouter une maison ---
-                case 2 -> {
-                    Maison m = maisonFactory.creerMaison();
-                    if (m != null)
-                        reseau.ajouterMaison(m);
-                }
-
-                // --- Ajouter une connexion ---
-                case 3 -> {
-                    if (reseau.isConnexionPossible()) {
-                         System.out.println("Aucune connexion possible : vérifiez que vous avez au moins un générateur et une maison non connectée.");
-                         break;
-                    }
-
-                    reseau.afficherOptions();
-                    
-                    System.out.print("Entrez la maison et le générateur à connecter (ex: M1 G1 ou G1 M1): ");
-                    String ligne = scanner.nextLine().trim();
-                    String[] parties = ligne.split("\\s+");
-
-                    if (parties.length != 2) {
-                        System.err.println("Format invalide. Exemple attendu : M1 G1");
-                        break;
-                    }
-
-                    String nom1 = parties[0];
-                    String nom2 = parties[1];
-
-                    Maison maison = reseau.getMaisonParNom(nom1);
-                    Generateur generateur = reseau.getGenerateurParNom(nom2);
-
-                    if (maison == null && generateur == null) {
-                        maison = reseau.getMaisonParNom(nom2);
-                        generateur = reseau.getGenerateurParNom(nom1);
-                    }
-
-                    if (maison == null || generateur == null) {
-                        System.err.println("Maison ou générateur introuvable. Vérifiez que les deux existent.");
-                        break;
-                    }
-                    
-                    reseau.ajouterConnexion(maison.getNom(), generateur.getNom());
-                }
-
-                // --- Supprimer une connexion ---
-                case 4 -> {
-                    System.out.print("Pour supprimer une connexion existante, entrez la maison et le générateur (ex: M1 G1 ou G1 M1): ");
-                    String ligne = scanner.nextLine().trim();
-                    String[] parties = ligne.split("\\s+");
-
-                    if (parties.length != 2) {
-                        System.err.println("Format invalide. Exemple attendu : M1 G1");
-                        break;
-                    }
-                    String nom1 = parties[0];
-                    String nom2 = parties[1];
-
-                    Maison maison = reseau.getMaisonParNom(nom1);
-                    Generateur generateur = reseau.getGenerateurParNom(nom2);
-
-                    if (maison == null && generateur == null) {
-                        maison = reseau.getMaisonParNom(nom2);
-                        generateur = reseau.getGenerateurParNom(nom1);
-                    }
-
-                    if (maison == null || generateur == null) {
-                        System.err.println("Maison ou générateur introuvable. Vérifiez que les deux existent.");
-                        break;
-                    }
-                    
-                    reseau.supprimerConnexion(maison.getNom(), generateur.getNom());
-                }
-
-                // --- Vérifier que le réseau est valide, puis menu calcul ---
-                case 5 -> {
-                    if (reseau.isValide()) {
-                        menuCalcul(scanner, reseau);
-                        scanner.close();
-                        return;
-                    } else {
-                        System.err.println(
-                                "Votre réseau n'est pas valide, vérifiez que toutes les maisons sont connectées");
-                    }
-                }
-
-                default -> System.err.println("Choix invalide !");
-            }
-        } while (true);
     }
 }
