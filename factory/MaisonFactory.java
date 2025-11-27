@@ -15,13 +15,11 @@ public class MaisonFactory {
 
     public Maison creerMaison() {
         System.out.print("Entrez le nom et le type de consommation (BASSE - NORMAL - FORTE) (ex: M1 NORMAL) : ");
-        String ligne = scanner.nextLine().trim(); // lit toute la ligne
-
-        // On découpe la ligne en morceaux
-        String[] parties = ligne.split("\\s+"); // découpe par un ou plusieurs espaces
+        String ligne = scanner.nextLine().trim();
+        String[] parties = ligne.split("\\s+");
 
         if (parties.length != 2) {
-            System.out.println("Format invalide. Exemple attendu : M1 NORMAL");
+            System.err.println("Format invalide. Exemple attendu : M1 NORMAL");
             return null;
         }
 

@@ -1,9 +1,7 @@
 package com.example.reseau;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
+
+import java.io.*;
 import java.util.*;
 
 public class Reseau {
@@ -158,12 +156,22 @@ public class Reseau {
     public void supprimerConnexion(String nomMaison, String nomGenerateur) {
         Generateur g = getGenerateurParNom(nomGenerateur);
         Maison m = getMaisonParNom(nomMaison);
-        if (g != null) {
-            if (connexions.get(g).contains(m)) {
-                connexions.get(g).remove(m);
-                maisonsNonConnectees.add(m);
-                System.out.println("Connexion supprimée avec succés");
-            }
+
+        // --- Ajout des vérifications de nullité ---
+        if (g == null) {
+            System.err.println("Erreur de suppression : le générateur '" + nomGenerateur + "' est introuvable.");
+            return;
+        }
+        if (m == null) {
+            System.err.println("Erreur de suppression : la maison '" + nomMaison + "' est introuvable.");
+            return;
+        }
+        // --- Fin des vérifications ---
+
+        if (connexions.containsKey(g) && connexions.get(g).contains(m)) {
+            connexions.get(g).remove(m);
+            maisonsNonConnectees.add(m);
+            System.out.println("Connexion supprimée avec succès : " + nomGenerateur + " n'alimente plus " + nomMaison);
         } else {
             System.out.println("La maison " + nomMaison + " n'est pas connectée au générateur " + nomGenerateur);
         }
@@ -303,6 +311,21 @@ public class Reseau {
         Generateur ancienGen = getGenerateurParNom(ancienGenerateur);
         Generateur nouveauGen = getGenerateurParNom(nouveauGenerateur);
 
+        // --- Ajout des vérifications de nullité ---
+        if (maison == null) {
+            System.err.println("Erreur de modification : la maison '" + ancienneMaison + "' est introuvable.");
+            return;
+        }
+        if (ancienGen == null) {
+            System.err.println("Erreur de modification : l'ancien générateur '" + ancienGenerateur + "' est introuvable.");
+            return;
+        }
+        if (nouveauGen == null) {
+            System.err.println("Erreur de modification : le nouveau générateur '" + nouveauGenerateur + "' est introuvable.");
+            return;
+        }
+        // --- Fin des vérifications ---
+
         // Vérifier que la maison est bien connectée à l’ancien générateur
         if (!connexions.containsKey(ancienGen) || !connexions.get(ancienGen).contains(maison)) {
             System.out.println("La maison " + maison.getNom() + " n'est pas connectée à " + ancienGen.getNom() + ".");
@@ -432,8 +455,12 @@ public class Reseau {
                 throw new IllegalStateException(" Certaines maisons ne sont pas connectées )");
             }
 
+        } catch (FileNotFoundException e) {
+            throw new IllegalArgumentException("Fichier non trouvé : " + path);
         } catch (IOException e) {
-            System.out.println("Erreur de lecture du fichier : " + e.getMessage());
+            // Pour les autres erreurs d'I/O, on encapsule dans une RuntimeException
+            // car c'est plus grave et inattendu.
+            throw new RuntimeException("Erreur d'entrée/sortie lors de la lecture du fichier : " + e.getMessage(), e);
         }
     }
 
@@ -443,11 +470,16 @@ public class Reseau {
         String[] parts = ligne.split(",");
 
         if (parts.length != 2) {
-            throw new IllegalArgumentException("Format générateur invalide : " + ligne);
+            throw new IllegalArgumentException("Format générateur invalide, attendu : generateur(nom,capacité) -> " + ligne);
         }
 
-        String nom = parts[0];
-        int capacite = Integer.parseInt(parts[1]);
+        String nom = parts[0].trim();
+        int capacite;
+        try {
+            capacite = Integer.parseInt(parts[1].trim());
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("La capacité du générateur doit être un nombre entier. Valeur reçue : '" + parts[1].trim() + "'");
+        }
 
         ajouterGenerateur(new Generateur(nom, capacite));
     }
@@ -580,6 +612,14 @@ public class Reseau {
                     }
                 }
 
+                // --- Vérification de nullité pour se protéger d'un état incohérent ---
+                if (ancienGenerateur == null) {
+                    // Cette maison n'est connectée nulle part, on ne peut pas l'optimiser.
+                    // On passe à la suivante pour éviter un crash.
+                    continue;
+                }
+                // --- Fin de la vérification ---
+
                 for (Generateur generateur : reseau.getConnexions().keySet()) {
                     if (!generateur.equals(ancienGenerateur)) {
 
@@ -591,7 +631,6 @@ public class Reseau {
                                 generateur.getNom());
 
                         double nouveauCout = reseau.calculerCout();
-
                         if (nouveauCout > ancienCout) {
                             reseau.modifierConnexion(maison.getNom(),
                                     generateur.getNom(),
