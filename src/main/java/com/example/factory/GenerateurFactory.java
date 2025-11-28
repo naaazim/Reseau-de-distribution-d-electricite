@@ -45,7 +45,7 @@ public class GenerateurFactory {
             }
             return new Generateur(nom.toUpperCase(), capacite);
         } catch (NumberFormatException e) {
-            System.out.println("La capacité doit être un nombre entier valide. Saisie invalide : '" + parties[1] + "'");
+            System.out.println("La capacité doit être un nombre entier valide. Saisie invalide : '" + parties[1] + "'\n");
             return null;
         }
     }

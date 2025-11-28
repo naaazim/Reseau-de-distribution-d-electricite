@@ -255,16 +255,26 @@ public class Main {
                 switch (choix) {
                     // --- Ajouter un générateur ---
                     case 1 -> {
-                        Generateur g = generateurFactory.creerGenerateur();
-                        if (g != null)
-                            reseau.ajouterGenerateur(g);
+                        try{
+                            Generateur g = generateurFactory.creerGenerateur();
+                            if (g != null)
+                                reseau.ajouterGenerateur(g);
+                        }catch(IllegalArgumentException e){
+                            System.out.println(e.getMessage());
+                        }
+
                     }
 
                     // --- Ajouter une maison ---
                     case 2 -> {
-                        Maison m = maisonFactory.creerMaison();
-                        if (m != null)
-                            reseau.ajouterMaison(m);
+                        try{
+                            Maison m = maisonFactory.creerMaison();
+                            if (m != null)
+                                reseau.ajouterMaison(m);
+                        }catch (IllegalArgumentException e){
+                            System.out.println(e.getMessage());
+                        }
+
                     }
 
                     // --- Ajouter une connexion ---

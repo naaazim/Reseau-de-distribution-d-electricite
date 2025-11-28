@@ -85,7 +85,11 @@ public class GuiMain extends Application {
 
         // --- Affichage Central ---
         networkDisplay.setStyle("-fx-background-color: #f0f0f0; -fx-border-color: #a0a0a0;");
-        root.setCenter(networkDisplay);
+        ScrollPane scrollPane = new ScrollPane(networkDisplay);
+        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.ALWAYS);
+        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scrollPane.setFitToHeight(true); // Permet au contenu de s'étendre verticalement
+        root.setCenter(scrollPane);
 
         // --- Panneau de Contrôle (Droite) ---
         ScrollPane controlPanel = createControlPanel(primaryStage);
