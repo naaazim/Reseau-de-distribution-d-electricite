@@ -1,0 +1,49 @@
+#############################################
+#   Java / Maven / IntelliJ / VSCode Ignore
+#############################################
+
+# -------- IDE --------
+.idea/
+*.iml
+.vscode/
+
+# -------- Build output --------
+target/
+out/
+bin/
+build/
+
+# -------- OS files --------
+.DS_Store
+Thumbs.db
+
+# -------- Java files --------
+*.class
+*.log
+*.ctxt
+
+# -------- Maven --------
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# -------- JavaFX build --------
+*.fxml
+*.css~
+*~ 
+
+# -------- Temporary files --------
+*.tmp
+*.temp
+*.swp
+*.swo
+
+# -------- Backup --------
+*sauvegarde*.txt
+*backup*.txt
+
+# -------- Node / npm accidental (just in case) --------
+node_modules/
+
+# -------- JetBrains caches --------
+.jps-cache/
+
