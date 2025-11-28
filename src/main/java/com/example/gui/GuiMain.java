@@ -37,7 +37,9 @@ public class GuiMain extends Application {
     private ComboBox<String> maisonComboBox = new ComboBox<>();
     private ComboBox<String> generateurComboBox = new ComboBox<>();
     
-    private Image maisonImage;
+    private Image maisonBasseImage;
+    private Image maisonNormaleImage;
+    private Image maisonForteImage;
     private Image generateurImage;
 
     /**
@@ -60,10 +62,16 @@ public class GuiMain extends Application {
         primaryStage.setTitle("Gestionnaire de Réseau Électrique");
 
         try {
-            maisonImage = new Image(getClass().getResourceAsStream("maison.png"));
+            maisonBasseImage = new Image(getClass().getResourceAsStream("maisonBasse.png"));
+            maisonNormaleImage = new Image(getClass().getResourceAsStream("maisonNormale.png"));
+            maisonForteImage = new Image(getClass().getResourceAsStream("maisonForte.png"));
             generateurImage = new Image(getClass().getResourceAsStream("generateur.png"));
+
+            if (maisonBasseImage.isError() || maisonNormaleImage.isError() || maisonForteImage.isError() || generateurImage.isError()) {
+                throw new Exception("Une ou plusieurs images n'ont pas pu être chargées.");
+            }
         } catch (Exception e) {
-            showAlert(Alert.AlertType.ERROR, "Erreur de ressource", "Impossible de charger les images. Assurez-vous que 'maison.png' and 'generateur.png' sont dans le bon répertoire.");
+            showAlert(Alert.AlertType.ERROR, "Erreur de ressource", "Impossible de charger les images. Assurez-vous que 'maisonBasse.png', 'maisonNormale.png', 'maisonForte.png' et 'generateur.png' sont dans le bon répertoire de ressources.");
             // On peut continuer sans images, l'UI sera moins jolie
         }
 
@@ -500,7 +508,7 @@ public class GuiMain extends Application {
             double x = houseStartX + i * spacing;
             Point2D center = new Point2D(x, houseY);
 
-            ImageView imageView = new ImageView(maisonImage);
+            ImageView imageView = new ImageView(getImageForMaison(m));
             imageView.setFitWidth(imageSize);
             imageView.setFitHeight(imageSize);
             imageView.setX(center.getX() - imageSize / 2);
@@ -547,6 +555,18 @@ public class GuiMain extends Application {
 
         double cout = reseau.calculerCout();
         statusLabel.setText(String.format("Coût actuel: %.4f", cout));
+    }
+
+    private Image getImageForMaison(Maison m) {
+        switch (m.getTypeConso()) {
+            case FORTE:
+                return maisonForteImage;
+            case NORMAL:
+                return maisonNormaleImage;
+            case BASSE:
+            default:
+                return maisonBasseImage;
+        }
     }
 
     /**
