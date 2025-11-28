@@ -628,8 +628,12 @@ public class Reseau {
     }
 
     /**
-     * Analyse une ligne pour créer un générateur. Format attendu :
-     * "generateur(nom,capacité)".
+     * Analyse une chaîne de caractères pour en extraire les informations d'un générateur
+     * et l'ajouter au réseau.
+     * Le format attendu est "generateur(nom,capacité)".
+     *
+     * @param ligne La chaîne à analyser.
+     * @throws IllegalArgumentException si le format est invalide ou si la capacité n'est pas un nombre.
      */
     private void parseGenerateur(String ligne) {
         ligne = ligne.substring("generateur(".length(), ligne.length() - 1);
@@ -653,7 +657,12 @@ public class Reseau {
     }
 
     /**
-     * Analyse une ligne pour créer une maison. Format attendu : "maison(nom,TYPE)".
+     * Analyse une chaîne de caractères pour en extraire les informations d'une maison
+     * et l'ajouter au réseau.
+     * Le format attendu est "maison(nom,TYPE_CONSO)".
+     *
+     * @param ligne La chaîne à analyser.
+     * @throws IllegalArgumentException si le format est invalide ou si le type de consommation est inconnu.
      */
     private void parseMaison(String ligne) {
         ligne = ligne.substring("maison(".length(), ligne.length() - 1);
@@ -678,8 +687,11 @@ public class Reseau {
     }
 
     /**
-     * Analyse une ligne pour créer une connexion. Format attendu :
-     * "connexion(nomMaison,nomGenerateur)".
+     * Analyse une chaîne de caractères pour créer une connexion entre une maison et un générateur.
+     * Le format attendu est "connexion(nomMaison,nomGenerateur)".
+     *
+     * @param ligne La chaîne à analyser.
+     * @throws IllegalArgumentException si le format est invalide ou si les entités n'existent pas.
      */
     private void parseConnexion(String ligne) {
         ligne = ligne.substring("connexion(".length(), ligne.length() - 1);
@@ -738,12 +750,14 @@ public class Reseau {
     }
 
     /**
-     * Exécute une version simple de l'algorithme d'optimisation (recherche locale)
-     * pour un nombre donné d'itérations.
+     * Exécute un algorithme d'optimisation simple (recherche locale naïve)
+     * pendant un nombre fixe d'itérations.
+     * À chaque itération, une maison est déplacée aléatoirement vers un autre
+     * générateur. Si le coût du réseau augmente, le changement est annulé.
      *
-     * @param reseau Le réseau à optimiser.
+     * @param reseau Le réseau initial à optimiser.
      * @param k      Le nombre d'itérations à effectuer.
-     * @return Le réseau après les tentatives d'optimisation.
+     * @return Le réseau potentiellement optimisé après k itérations.
      */
     public Reseau algoNaif(Reseau reseau, int k) {
         int i = 0;
@@ -777,12 +791,16 @@ public class Reseau {
     }
 
     /**
-     * Exécute un algorithme d'optimisation qui tente de déplacer chaque maison vers
-     * le meilleur
-     * générateur possible jusqu'à ce qu'aucune amélioration ne soit trouvée.
+     * Exécute un algorithme d'optimisation avancé basé sur une recherche locale
+     * de type "meilleure amélioration" (best improvement).
+     * L'algorithme parcourt toutes les maisons et évalue le coût de leur
+     * déplacement vers chaque autre générateur. La maison est déplacée vers le
+     * générateur qui offre la plus grande réduction de coût.
+     * Le processus est répété jusqu'à ce qu'un passage complet sur toutes les
+     * maisons ne produise plus aucune amélioration, garantissant ainsi un minimum local.
      *
      * @param reseau Le réseau de départ à optimiser.
-     * @return Le réseau optimisé.
+     * @return Le réseau optimisé, potentiellement dans un état de coût minimal local.
      */
     public static Reseau algoOptimise(Reseau reseau) {
 

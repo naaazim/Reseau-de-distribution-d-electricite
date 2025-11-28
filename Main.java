@@ -45,6 +45,17 @@ public class Main {
     }
 
     // --- Menu de calcul (réutilisé en mode fichier + mode manuel)
+    /**
+     * Affiche le menu de calcul et gère les interactions de l'utilisateur.
+     * Ce menu permet de :
+     * - Calculer le coût total du réseau.
+     * - Modifier une connexion existante entre une maison et un générateur.
+     * - Afficher la configuration actuelle du réseau.
+     * - Quitter le sous-menu.
+     *
+     * @param scanner L'objet {@link Scanner} pour lire l'entrée de l'utilisateur.
+     * @param reseau  Le {@link Reseau} sur lequel les opérations seront effectuées.
+     */
     private static void menuCalcul(Scanner scanner, Reseau reseau) {
         while (true) {
             System.out.println("\n===== MENU CALCUL =====");
@@ -56,7 +67,7 @@ public class Main {
 
             int choix = askForInt(scanner);
             if (choix == -1) {
-                continue; // Réaffiche le menu si l'entrée est invalide
+                continue; //Réaffiche le menu si l'entrée est invalide
             }
 
             switch (choix) {
@@ -116,6 +127,17 @@ public class Main {
     // ================================
     // MENU PARTIE 2 (mode fichier)
     // ================================
+    /**
+     * Affiche le menu pour le mode fichier (Partie 2) et gère les interactions.
+     * Ce menu est spécifique au mode où un réseau est chargé depuis un fichier.
+     * Il propose les options suivantes :
+     * - Lancer une résolution automatique pour optimiser le réseau.
+     * - Sauvegarder la configuration actuelle du réseau dans un fichier.
+     * - Quitter le programme.
+     *
+     * @param scanner L'objet {@link Scanner} pour lire l'entrée de l'utilisateur.
+     * @param reseau  Le {@link Reseau} chargé, sur lequel les opérations seront effectuées.
+     */
     private static void menuPartie2(Scanner scanner, Reseau reseau) {
         while (true) {
             System.out.println("\n===== MENU (MODE FICHIER) =====");
@@ -165,6 +187,20 @@ public class Main {
         }
     }
 
+    /**
+     * Point d'entrée principal de l'application.
+     * Ce programme peut être exécuté de deux manières :
+     * - Mode interactif : Si aucun argument n'est fourni, le programme
+     * démarre un menu interactif pour construire un réseau électrique manuellement.
+     * - Mode fichier : Si un chemin de fichier est fourni comme premier
+     * argument, le programme charge la configuration du réseau depuis ce fichier.
+     * Un deuxième argument optionnel (un entier) peut être utilisé pour spécifier
+     * la valeur de lambda (sévérité).
+     *
+     * @param args Les arguments de la ligne de commande.
+     *             - {@code args[0]} (optionnel) : Chemin vers le fichier de configuration du réseau.
+     *             - {@code args[1]} (optionnel) : Valeur entière pour lambda (sévérité).
+     */
     public static void main(String[] args) {
         try (Scanner scanner = new Scanner(System.in)) {
             Reseau reseau = new Reseau();

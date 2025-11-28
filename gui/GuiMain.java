@@ -17,23 +17,56 @@ import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import javafx.geometry.Point2D;
+import java.util.ArrayList;
+import javafx.scene.Node;
+
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.shape.Line;
+import java.util.HashMap;
+import java.util.Map;
+
 public class GuiMain extends Application {
 
     private Reseau reseau = new Reseau();
 
     // --- Composants UI ---
-    private TextArea networkDisplay = new TextArea();
+    private Pane networkDisplay = new Pane();
     private Label statusLabel = new Label("Prêt.");
     private ComboBox<String> maisonComboBox = new ComboBox<>();
     private ComboBox<String> generateurComboBox = new ComboBox<>();
+    
+    private Image maisonImage;
+    private Image generateurImage;
 
+    /**
+     * Lance l'application JavaFX.
+     *
+     * @param args Les arguments de la ligne de commande (non utilisés dans cette application).
+     */
     public static void main(String[] args) {
         launch(args);
     }
 
+    /**
+     * Point d'entrée principal pour l'application JavaFX.
+     * Initialise la fenêtre principale, configure l'interface utilisateur et affiche la scène.
+     *
+     * @param primaryStage La scène principale de l'application, fournie par JavaFX.
+     */
     @Override
     public void start(Stage primaryStage) {
         primaryStage.setTitle("Gestionnaire de Réseau Électrique");
+
+        try {
+            maisonImage = new Image(getClass().getResourceAsStream("maison.png"));
+            generateurImage = new Image(getClass().getResourceAsStream("generateur.png"));
+        } catch (Exception e) {
+            showAlert(Alert.AlertType.ERROR, "Erreur de ressource", "Impossible de charger les images. Assurez-vous que 'maison.png' and 'generateur.png' sont dans le bon répertoire.");
+            // On peut continuer sans images, l'UI sera moins jolie
+        }
+
 
         BorderPane root = new BorderPane();
         root.setPadding(new Insets(10));
@@ -43,8 +76,7 @@ public class GuiMain extends Application {
         root.setTop(menuBar);
 
         // --- Affichage Central ---
-        networkDisplay.setEditable(false);
-        networkDisplay.setWrapText(true);
+        networkDisplay.setStyle("-fx-background-color: #f0f0f0; -fx-border-color: #a0a0a0;");
         root.setCenter(networkDisplay);
 
         // --- Panneau de Contrôle (Droite) ---
@@ -67,7 +99,14 @@ public class GuiMain extends Application {
     }
 
     /**
-     * Crée la barre de menu de l'application.
+     * Crée et configure la barre de menu principale de l'application.
+     * Le menu "Fichier" contient des options pour :
+     * - Charger un réseau depuis un fichier.
+     * - Sauvegarder le réseau actuel dans un fichier.
+     * - Quitter l'application.
+     *
+     * @param owner La fenêtre parente (Stage), utilisée pour les boîtes de dialogue de fichier.
+     * @return La barre de menu ({@link MenuBar}) configurée.
      */
     private MenuBar createMenuBar(Stage owner) {
         MenuBar menuBar = new MenuBar();
@@ -88,7 +127,13 @@ public class GuiMain extends Application {
     }
 
     /**
-     * Crée le panneau de contrôle principal avec tous les boutons et champs.
+     * Crée le panneau de contrôle latéral, qui contient toutes les commandes
+     * pour interagir avec le réseau.
+     * Ce panneau inclut des sections pour gérer les générateurs, les maisons,
+     * les connexions et les actions globales.
+     *
+     * @param owner La fenêtre parente, nécessaire pour certaines actions comme le chargement/sauvegarde.
+     * @return Un {@link ScrollPane} contenant le panneau de contrôle.
      */
     private ScrollPane createControlPanel(Stage owner) {
         VBox panel = new VBox(15);
@@ -111,7 +156,11 @@ public class GuiMain extends Application {
     }
 
     /**
-     * Crée la section pour ajouter des générateurs.
+     * Crée la section de l'interface dédiée à l'ajout de générateurs.
+     * Cette section contient des champs pour le nom et la capacité, ainsi qu'un
+     * bouton pour ajouter le générateur au réseau.
+     *
+     * @return Un {@link TitledPane} pour la gestion des générateurs.
      */
     private TitledPane createGeneratorPane() {
         GridPane grid = new GridPane();
@@ -158,7 +207,11 @@ public class GuiMain extends Application {
     }
 
     /**
-     * Crée la section pour ajouter des maisons.
+     * Crée la section de l'interface dédiée à l'ajout de maisons.
+     * Cette section contient des champs pour le nom et le type de consommation,
+     * ainsi qu'un bouton pour ajouter la maison au réseau.
+     *
+     * @return Un {@link TitledPane} pour la gestion des maisons.
      */
     private TitledPane createHousePane() {
         GridPane grid = new GridPane();
@@ -201,7 +254,11 @@ public class GuiMain extends Application {
     }
 
     /**
-     * Crée la section pour gérer les connexions.
+     * Crée la section de l'interface dédiée à la gestion des connexions.
+     * Permet de sélectionner une maison et un générateur depuis des listes
+     * déroulantes pour les connecter ou les déconnecter.
+     *
+     * @return Un {@link TitledPane} pour la gestion des connexions.
      */
     private TitledPane createConnectionPane() {
         GridPane grid = new GridPane();
@@ -260,10 +317,15 @@ public class GuiMain extends Application {
     }
 
     /**
-     * Crée la section pour les actions globales (calcul, optimisation).
-     */
-    /**
-     * Crée la section pour les actions globales (calcul, optimisation).
+     * Crée la section "Actions" qui regroupe les fonctionnalités globales.
+     * Cette section contient des boutons pour :
+     * - Charger et sauvegarder le réseau.
+     * - Calculer le coût en fonction d'une valeur lambda.
+     * - Valider la topologie du réseau.
+     * - Exécuter les algorithmes d'optimisation (naïf et avancé).
+     *
+     * @param owner La fenêtre parente, utilisée pour les boîtes de dialogue de fichier.
+     * @return Un {@link TitledPane} pour les actions globales.
      */
     private TitledPane createActionPane(Stage owner) {
         VBox content = new VBox(10);
@@ -318,7 +380,9 @@ public class GuiMain extends Application {
                 int lambda = Integer.parseInt(lambdaField.getText());
                 reseau.setLambda(lambda);
                 double cout = reseau.calculerCout();
-                statusLabel.setText(String.format("Coût actuel du réseau : %.4f", cout));
+                String costString = String.format("Coût actuel du réseau : %.4f", cout);
+                statusLabel.setText(costString);
+                showAlert(Alert.AlertType.INFORMATION, "Résultat du Calcul", costString);
             } catch (NumberFormatException ex) {
                 showAlert(Alert.AlertType.ERROR, "Erreur", "La sévérité (Lambda) doit être un entier.");
             }
@@ -377,37 +441,120 @@ public class GuiMain extends Application {
     }
 
     /**
-     * Met à jour tous les éléments de l'interface graphique pour refléter l'état
-     * actuel du réseau.
+     * Met à jour tous les composants de l'interface utilisateur pour refléter l'état
+     * actuel du {@link Reseau}.
+     * Cela inclut l'affichage graphique du réseau, les listes déroulantes pour
+     * les maisons et générateurs, et la barre de statut.
      */
     private void updateUI() {
-        // Met à jour la vue texte du réseau
-        networkDisplay.setText(reseau.getNetworkState());
+        networkDisplay.getChildren().clear();
 
-        // Met à jour les listes déroulantes
+        Map<String, Node> nodeMap = new HashMap<>();
+        Map<String, Point2D> positions = new HashMap<>();
+
+
+        // Layout constants
+        double genY = 80;
+        double houseY = 400;
+        double spacing = 120;
+        double imageSize = 64;
+
+        // --- 1. Dessiner les générateurs ---
+        List<Generateur> generateurs = new ArrayList<>(reseau.getConnexions().keySet());
+        double totalGenWidth = generateurs.size() * spacing;
+        double genStartX = (networkDisplay.getWidth() - totalGenWidth) / 2 + spacing / 2;
+        if (genStartX < 40) genStartX = 40;
+
+        for (int i = 0; i < generateurs.size(); i++) {
+            Generateur g = generateurs.get(i);
+            double x = genStartX + i * spacing;
+            Point2D center = new Point2D(x, genY);
+
+            ImageView imageView = new ImageView(generateurImage);
+            imageView.setFitWidth(imageSize);
+            imageView.setFitHeight(imageSize);
+            imageView.setX(center.getX() - imageSize / 2);
+            imageView.setY(center.getY() - imageSize / 2);
+
+            Label label = new Label(g.getNom() + "\n(" + g.getCapacite() + " kW)");
+            label.setAlignment(Pos.CENTER);
+            label.setLayoutX(center.getX() - 30);
+            label.setLayoutY(center.getY() - imageSize / 2 - 40);
+
+            networkDisplay.getChildren().addAll(imageView, label);
+            nodeMap.put(g.getNom(), imageView);
+            positions.put(g.getNom(), center);
+        }
+
+        // --- 2. Dessiner les maisons (connectées et non connectées) ---
+        List<Maison> toutesLesMaisons = new ArrayList<>();
+        reseau.getConnexions().values().forEach(toutesLesMaisons::addAll);
+        toutesLesMaisons.addAll(reseau.getMaisonsNonConnectees());
+
+        double totalHouseWidth = toutesLesMaisons.size() * spacing;
+        double houseStartX = (networkDisplay.getWidth() - totalHouseWidth) / 2 + spacing / 2;
+        if (houseStartX < 40) houseStartX = 40;
+
+        for (int i = 0; i < toutesLesMaisons.size(); i++) {
+            Maison m = toutesLesMaisons.get(i);
+            double x = houseStartX + i * spacing;
+            Point2D center = new Point2D(x, houseY);
+
+            ImageView imageView = new ImageView(maisonImage);
+            imageView.setFitWidth(imageSize);
+            imageView.setFitHeight(imageSize);
+            imageView.setX(center.getX() - imageSize / 2);
+            imageView.setY(center.getY() - imageSize / 2);
+            
+            Label label = new Label(m.getNom() + "\n(" + m.getTypeConso().getConsommation() + " kW)");
+            label.setAlignment(Pos.CENTER);
+            label.setLayoutX(center.getX() - 20);
+            label.setLayoutY(center.getY() + imageSize / 2 + 5);
+
+            networkDisplay.getChildren().addAll(imageView, label);
+            nodeMap.put(m.getNom(), imageView);
+            positions.put(m.getNom(), center);
+        }
+
+        // --- 3. Dessiner les connexions ---
+        for (Map.Entry<Generateur, List<Maison>> entry : reseau.getConnexions().entrySet()) {
+            Point2D genPos = positions.get(entry.getKey().getNom());
+            if (genPos == null) continue;
+
+            for (Maison m : entry.getValue()) {
+                Point2D housePos = positions.get(m.getNom());
+                if (housePos == null) continue;
+
+                Line line = new Line(genPos.getX(), genPos.getY(), housePos.getX(), housePos.getY());
+                line.setStrokeWidth(2);
+
+                // Mettre la ligne en arrière-plan
+                networkDisplay.getChildren().add(0, line);
+            }
+        }
+
+
+        // --- 4. Mettre à jour les ComboBoxes et le statut ---
         maisonComboBox.setItems(FXCollections.observableArrayList(
-                reseau.getConnexions().values().stream()
-                        .flatMap(List::stream)
+                toutesLesMaisons.stream()
                         .map(Maison::getNom)
                         .collect(Collectors.toList())));
-        // Ajoute aussi les maisons non connectées
-        maisonComboBox.getItems().addAll(
-                reseau.getMaisonsNonConnectees().stream()
-                        .map(Maison::getNom)
-                        .collect(Collectors.toList()));
 
         generateurComboBox.setItems(FXCollections.observableArrayList(
-                reseau.getConnexions().keySet().stream()
+                generateurs.stream()
                         .map(Generateur::getNom)
                         .collect(Collectors.toList())));
 
-        // Met à jour la barre de statut
         double cout = reseau.calculerCout();
         statusLabel.setText(String.format("Coût actuel: %.4f", cout));
     }
 
     /**
-     * Ouvre une boîte de dialogue pour charger un réseau depuis un fichier.
+     * Ouvre une boîte de dialogue permettant à l'utilisateur de sélectionner un
+     * fichier pour charger une configuration de réseau.
+     * Le réseau actuel est réinitialisé et remplacé par celui du fichier.
+     *
+     * @param owner La fenêtre parente qui possède la boîte de dialogue.
      */
     private void loadNetwork(Stage owner) {
         FileChooser fileChooser = new FileChooser();
@@ -429,8 +576,10 @@ public class GuiMain extends Application {
     }
 
     /**
-     * Ouvre une boîte de dialogue pour sauvegarder le réseau actuel dans un
-     * fichier.
+     * Ouvre une boîte de dialogue pour permettre à l'utilisateur de sauvegarder
+     * la configuration actuelle du réseau dans un fichier texte.
+     *
+     * @param owner La fenêtre parente qui possède la boîte de dialogue.
      */
     private void saveNetwork(Stage owner) {
         FileChooser fileChooser = new FileChooser();
@@ -450,7 +599,11 @@ public class GuiMain extends Application {
     }
 
     /**
-     * Affiche une boîte de dialogue d'alerte.
+     * Affiche une boîte de dialogue modale (alerte) à l'utilisateur.
+     *
+     * @param type    Le type d'alerte (par exemple, {@code Alert.AlertType.ERROR}).
+     * @param title   Le titre de la fenêtre d'alerte.
+     * @param content Le message à afficher dans l'alerte.
      */
     private void showAlert(Alert.AlertType type, String title, String content) {
         Alert alert = new Alert(type);
