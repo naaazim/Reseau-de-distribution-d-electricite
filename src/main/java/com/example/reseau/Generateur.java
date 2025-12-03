@@ -13,7 +13,6 @@ public class Generateur {
      *
      * @param nom Le nom du générateur.
      * @param capacite La capacité de production en kW (doit être positive).
-     * @throws IllegalArgumentException si la capacité est négative ou nulle.
      */
     public Generateur(String nom, int capacite) {
         if (capacite <= 0)
@@ -23,6 +22,8 @@ public class Generateur {
     }
 
     /**
+     * Retourne le nom du générateur.
+     *
      * @return Le nom du générateur.
      */
     public String getNom() {
@@ -39,6 +40,8 @@ public class Generateur {
     }
 
     /**
+     * Retourne la capacité de production du générateur.
+     *
      * @return La capacité de production du générateur en kW.
      */
     public int getCapacite() {
@@ -49,7 +52,6 @@ public class Generateur {
      * Met à jour la capacité de production du générateur.
      *
      * @param capacite La nouvelle capacité en kW (doit être positive).
-     * @throws IllegalArgumentException si la nouvelle capacité est négative ou nulle.
      */
     public void setCapacite(int capacite) {
         if (capacite <= 0) {
@@ -87,7 +89,9 @@ public class Generateur {
     }
 
     /**
-     * @return Une représentation textuelle du générateur, incluant son nom et sa capacité.
+     * Retourne une représentation textuelle du générateur.
+     *
+     * @return Une chaîne de caractères représentant le générateur, incluant son nom et sa capacité.
      */
     @Override
     public String toString() {
@@ -95,7 +99,7 @@ public class Generateur {
     }
 
     /**
-     * Affiche la représentation textuelle du générateur sur la sortie standard, sans saut de ligne.
+     * Affiche la représentation textuelle du générateur sur la sortie standard.
      */
     public void afficher() {
         System.out.print(this);

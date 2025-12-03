@@ -27,11 +27,14 @@ import javafx.scene.shape.Line;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Classe principale de l'interface graphique (GUI) pour la gestion du réseau électrique.
+ * Elle utilise JavaFX pour fournir une représentation visuelle et interactive du réseau.
+ */
 public class GuiMain extends Application {
 
     private Reseau reseau = new Reseau();
 
-    // --- Composants UI ---
     private Pane networkDisplay = new Pane();
     private Label statusLabel = new Label("Prêt.");
     private ComboBox<String> maisonComboBox = new ComboBox<>();
@@ -45,7 +48,7 @@ public class GuiMain extends Application {
     /**
      * Lance l'application JavaFX.
      *
-     * @param args Les arguments de la ligne de commande (non utilisés dans cette application).
+     * @param args Les arguments de la ligne de commande (non utilisés).
      */
     public static void main(String[] args) {
         launch(args);
@@ -53,9 +56,9 @@ public class GuiMain extends Application {
 
     /**
      * Point d'entrée principal pour l'application JavaFX.
-     * Initialise la fenêtre principale, configure l'interface utilisateur et affiche la scène.
+     * Initialise la fenêtre principale (Stage), configure l'interface utilisateur et affiche la scène.
      *
-     * @param primaryStage La scène principale de l'application, fournie par JavaFX.
+     * @param primaryStage La scène principale de l'application.
      */
     @Override
     public void start(Stage primaryStage) {
@@ -71,37 +74,29 @@ public class GuiMain extends Application {
                 throw new Exception("Une ou plusieurs images n'ont pas pu être chargées.");
             }
         } catch (Exception e) {
-            showAlert(Alert.AlertType.ERROR, "Erreur de ressource", "Impossible de charger les images. Assurez-vous que 'maisonBasse.png', 'maisonNormale.png', 'maisonForte.png' et 'generateur.png' sont dans le bon répertoire de ressources.");
-            // On peut continuer sans images, l'UI sera moins jolie
+            showAlert(Alert.AlertType.ERROR, "Erreur de ressource", "Impossible de charger les images. Assurez-vous que les fichiers .png sont dans le bon répertoire de ressources.");
         }
 
 
         BorderPane root = new BorderPane();
         root.setPadding(new Insets(10));
 
-        // --- Menu Bar ---
         MenuBar menuBar = createMenuBar(primaryStage);
         root.setTop(menuBar);
 
-        // --- Affichage Central ---
         networkDisplay.setStyle("-fx-background-color: #f0f0f0; -fx-border-color: #a0a0a0;");
         ScrollPane scrollPane = new ScrollPane(networkDisplay);
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.ALWAYS);
         scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        scrollPane.setFitToHeight(true); // Permet au contenu de s'étendre verticalement
+        scrollPane.setFitToHeight(true);
         root.setCenter(scrollPane);
 
-        // --- Panneau de Contrôle (Droite) ---
         ScrollPane controlPanel = createControlPanel(primaryStage);
         root.setRight(controlPanel);
 
-        // --- Barre de Statut (Bas) ---
         HBox statusBar = new HBox(statusLabel);
         statusBar.setPadding(new Insets(5, 0, 0, 0));
         root.setBottom(statusBar);
-
-        // Supprimer la redirection de System.out
-        // System.setOut(new PrintStream(out, true));
 
         Scene scene = new Scene(root, 1024, 768);
         primaryStage.setScene(scene);
@@ -112,10 +107,6 @@ public class GuiMain extends Application {
 
     /**
      * Crée et configure la barre de menu principale de l'application.
-     * Le menu "Fichier" contient des options pour :
-     * - Charger un réseau depuis un fichier.
-     * - Sauvegarder le réseau actuel dans un fichier.
-     * - Quitter l'application.
      *
      * @param owner La fenêtre parente (Stage), utilisée pour les boîtes de dialogue de fichier.
      * @return La barre de menu ({@link MenuBar}) configurée.
@@ -139,18 +130,14 @@ public class GuiMain extends Application {
     }
 
     /**
-     * Crée le panneau de contrôle latéral, qui contient toutes les commandes
-     * pour interagir avec le réseau.
-     * Ce panneau inclut des sections pour gérer les générateurs, les maisons,
-     * les connexions et les actions globales.
+     * Crée le panneau de contrôle latéral qui contient toutes les commandes pour interagir avec le réseau.
      *
-     * @param owner La fenêtre parente, nécessaire pour certaines actions comme le chargement/sauvegarde.
+     * @param owner La fenêtre parente, nécessaire pour certaines actions.
      * @return Un {@link ScrollPane} contenant le panneau de contrôle.
      */
     private ScrollPane createControlPanel(Stage owner) {
         VBox panel = new VBox(15);
         panel.setPadding(new Insets(10));
-        // panel.setMinWidth(280); // La largeur est gérée par le ScrollPane
 
         panel.getChildren().addAll(
                 createGeneratorPane(),
@@ -162,15 +149,13 @@ public class GuiMain extends Application {
         scrollPane.setFitToWidth(true);
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
-        scrollPane.setMinWidth(310); // Largeur minimale pour le panneau défilant
+        scrollPane.setMinWidth(310);
 
         return scrollPane;
     }
 
     /**
-     * Crée la section de l'interface dédiée à l'ajout de générateurs.
-     * Cette section contient des champs pour le nom et la capacité, ainsi qu'un
-     * bouton pour ajouter le générateur au réseau.
+     * Crée la section de l'interface dédiée à la gestion des générateurs.
      *
      * @return Un {@link TitledPane} pour la gestion des générateurs.
      */
@@ -219,9 +204,7 @@ public class GuiMain extends Application {
     }
 
     /**
-     * Crée la section de l'interface dédiée à l'ajout de maisons.
-     * Cette section contient des champs pour le nom et le type de consommation,
-     * ainsi qu'un bouton pour ajouter la maison au réseau.
+     * Crée la section de l'interface dédiée à la gestion des maisons.
      *
      * @return Un {@link TitledPane} pour la gestion des maisons.
      */
@@ -267,8 +250,6 @@ public class GuiMain extends Application {
 
     /**
      * Crée la section de l'interface dédiée à la gestion des connexions.
-     * Permet de sélectionner une maison et un générateur depuis des listes
-     * déroulantes pour les connecter ou les déconnecter.
      *
      * @return Un {@link TitledPane} pour la gestion des connexions.
      */
@@ -295,8 +276,7 @@ public class GuiMain extends Application {
             String nomMaison = maisonComboBox.getValue();
             String nomGenerateur = generateurComboBox.getValue();
             if (nomMaison == null || nomGenerateur == null) {
-                showAlert(Alert.AlertType.WARNING, "Sélection manquante",
-                        "Veuillez sélectionner une maison et un générateur.");
+                showAlert(Alert.AlertType.WARNING, "Sélection manquante", "Veuillez sélectionner une maison et un générateur.");
                 return;
             }
             try {
@@ -312,8 +292,7 @@ public class GuiMain extends Application {
             String nomMaison = maisonComboBox.getValue();
             String nomGenerateur = generateurComboBox.getValue();
             if (nomMaison == null || nomGenerateur == null) {
-                showAlert(Alert.AlertType.WARNING, "Sélection manquante",
-                        "Veuillez sélectionner une maison et un générateur.");
+                showAlert(Alert.AlertType.WARNING, "Sélection manquante", "Veuillez sélectionner une maison et un générateur.");
                 return;
             }
             try {
@@ -330,20 +309,14 @@ public class GuiMain extends Application {
 
     /**
      * Crée la section "Actions" qui regroupe les fonctionnalités globales.
-     * Cette section contient des boutons pour :
-     * - Charger et sauvegarder le réseau.
-     * - Calculer le coût en fonction d'une valeur lambda.
-     * - Valider la topologie du réseau.
-     * - Exécuter les algorithmes d'optimisation (naïf et avancé).
      *
-     * @param owner La fenêtre parente, utilisée pour les boîtes de dialogue de fichier.
+     * @param owner La fenêtre parente, utilisée pour les boîtes de dialogue.
      * @return Un {@link TitledPane} pour les actions globales.
      */
     private TitledPane createActionPane(Stage owner) {
         VBox content = new VBox(10);
         content.setPadding(new Insets(10));
 
-        // --- Fichiers ---
         Button loadButton = new Button("Charger un réseau");
         loadButton.setMaxWidth(Double.MAX_VALUE);
         loadButton.setOnAction(e -> loadNetwork(owner));
@@ -352,37 +325,26 @@ public class GuiMain extends Application {
         saveButton.setMaxWidth(Double.MAX_VALUE);
         saveButton.setOnAction(e -> saveNetwork(owner));
 
-        // --- Paramètres ---
         Label lambdaLabel = new Label("Sévérité (Lambda):");
         TextField lambdaField = new TextField(String.valueOf(reseau.getLambda()));
-
         Button costButton = new Button("Calculer le Coût");
         costButton.setMaxWidth(Double.MAX_VALUE);
 
-        // --- Validation ---
         Button validateButton = new Button("Vérifier la validité");
         validateButton.setMaxWidth(Double.MAX_VALUE);
 
-        // --- Optimisation Naïve ---
         Label kLabel = new Label("Itérations (k) pour Naïf:");
         TextField kField = new TextField("100");
         Button naiveButton = new Button("Optimisation Naïve");
         naiveButton.setMaxWidth(Double.MAX_VALUE);
 
-        // --- Optimisation Avancée ---
         Button optimizeButton = new Button("Optimisation Avancée");
         optimizeButton.setMaxWidth(Double.MAX_VALUE);
 
         content.getChildren().addAll(
-                loadButton,
-                saveButton,
-                new Separator(),
-                lambdaLabel, lambdaField,
-                costButton,
-                validateButton,
-                new Separator(),
-                kLabel, kField, naiveButton,
-                new Separator(),
+                loadButton, saveButton, new Separator(),
+                lambdaLabel, lambdaField, costButton, validateButton, new Separator(),
+                kLabel, kField, naiveButton, new Separator(),
                 optimizeButton);
 
         TitledPane titledPane = new TitledPane("Actions", content);
@@ -402,12 +364,10 @@ public class GuiMain extends Application {
 
         validateButton.setOnAction(e -> {
             if (reseau.isValide()) {
-                showAlert(Alert.AlertType.INFORMATION, "Validité",
-                        "Le réseau est VALIDE. Toutes les maisons sont connectées.");
+                showAlert(Alert.AlertType.INFORMATION, "Validité", "Le réseau est VALIDE. Toutes les maisons sont connectées.");
                 statusLabel.setText("Réseau valide.");
             } else {
-                showAlert(Alert.AlertType.WARNING, "Validité",
-                        "Le réseau est INVALIDE. Certaines maisons ne sont pas connectées.");
+                showAlert(Alert.AlertType.WARNING, "Validité", "Le réseau est INVALIDE. Certaines maisons ne sont pas connectées.");
                 statusLabel.setText("Réseau invalide !");
             }
         });
@@ -423,12 +383,10 @@ public class GuiMain extends Application {
                 int k = Integer.parseInt(kField.getText());
                 reseau = reseau.algoNaif(reseau, k);
                 updateUI();
-                statusLabel.setText("Optimisation naïve terminée (" + k + " itérations). Coût: "
-                        + String.format("%.4f", reseau.calculerCout()));
+                statusLabel.setText("Optimisation naïve terminée (" + k + " itérations). Coût: " + String.format("%.4f", reseau.calculerCout()));
                 showAlert(Alert.AlertType.INFORMATION, "Optimisation Naïve", "Optimisation terminée.");
             } catch (NumberFormatException ex) {
-                showAlert(Alert.AlertType.ERROR, "Erreur",
-                        "Le nombre d'itérations (k) et Lambda doivent être des entiers.");
+                showAlert(Alert.AlertType.ERROR, "Erreur", "Le nombre d'itérations (k) et Lambda doivent être des entiers.");
             }
         });
 
@@ -453,10 +411,8 @@ public class GuiMain extends Application {
     }
 
     /**
-     * Met à jour tous les composants de l'interface utilisateur pour refléter l'état
-     * actuel du {@link Reseau}.
-     * Cela inclut l'affichage graphique du réseau, les listes déroulantes pour
-     * les maisons et générateurs, et la barre de statut.
+     * Met à jour tous les composants de l'interface pour refléter l'état actuel du {@link Reseau}.
+     * Redessine l'affichage graphique et met à jour les listes déroulantes.
      */
     private void updateUI() {
         networkDisplay.getChildren().clear();
@@ -464,14 +420,11 @@ public class GuiMain extends Application {
         Map<String, Node> nodeMap = new HashMap<>();
         Map<String, Point2D> positions = new HashMap<>();
 
-
-        // Layout constants
         double genY = 80;
         double houseY = 400;
         double spacing = 120;
         double imageSize = 64;
 
-        // --- 1. Dessiner les générateurs ---
         List<Generateur> generateurs = new ArrayList<>(reseau.getConnexions().keySet());
         double totalGenWidth = generateurs.size() * spacing;
         double genStartX = (networkDisplay.getWidth() - totalGenWidth) / 2 + spacing / 2;
@@ -498,7 +451,6 @@ public class GuiMain extends Application {
             positions.put(g.getNom(), center);
         }
 
-        // --- 2. Dessiner les maisons (connectées et non connectées) ---
         List<Maison> toutesLesMaisons = new ArrayList<>();
         reseau.getConnexions().values().forEach(toutesLesMaisons::addAll);
         toutesLesMaisons.addAll(reseau.getMaisonsNonConnectees());
@@ -528,7 +480,6 @@ public class GuiMain extends Application {
             positions.put(m.getNom(), center);
         }
 
-        // --- 3. Dessiner les connexions ---
         for (Map.Entry<Generateur, List<Maison>> entry : reseau.getConnexions().entrySet()) {
             Point2D genPos = positions.get(entry.getKey().getNom());
             if (genPos == null) continue;
@@ -539,28 +490,26 @@ public class GuiMain extends Application {
 
                 Line line = new Line(genPos.getX(), genPos.getY(), housePos.getX(), housePos.getY());
                 line.setStrokeWidth(2);
-
-                // Mettre la ligne en arrière-plan
                 networkDisplay.getChildren().add(0, line);
             }
         }
 
-
-        // --- 4. Mettre à jour les ComboBoxes et le statut ---
         maisonComboBox.setItems(FXCollections.observableArrayList(
-                toutesLesMaisons.stream()
-                        .map(Maison::getNom)
-                        .collect(Collectors.toList())));
+                toutesLesMaisons.stream().map(Maison::getNom).collect(Collectors.toList())));
 
         generateurComboBox.setItems(FXCollections.observableArrayList(
-                generateurs.stream()
-                        .map(Generateur::getNom)
-                        .collect(Collectors.toList())));
+                generateurs.stream().map(Generateur::getNom).collect(Collectors.toList())));
 
         double cout = reseau.calculerCout();
         statusLabel.setText(String.format("Coût actuel: %.4f", cout));
     }
 
+    /**
+     * Sélectionne l'image appropriée pour une maison en fonction de son type de consommation.
+     *
+     * @param m La maison pour laquelle obtenir l'image.
+     * @return L'objet {@link Image} correspondant.
+     */
     private Image getImageForMaison(Maison m) {
         switch (m.getTypeConso()) {
             case FORTE:
@@ -574,9 +523,7 @@ public class GuiMain extends Application {
     }
 
     /**
-     * Ouvre une boîte de dialogue permettant à l'utilisateur de sélectionner un
-     * fichier pour charger une configuration de réseau.
-     * Le réseau actuel est réinitialisé et remplacé par celui du fichier.
+     * Ouvre une boîte de dialogue pour charger une configuration de réseau depuis un fichier.
      *
      * @param owner La fenêtre parente qui possède la boîte de dialogue.
      */
@@ -588,20 +535,18 @@ public class GuiMain extends Application {
 
         if (file != null) {
             try {
-                reseau = new Reseau(); // Re-initialise le réseau
+                reseau = new Reseau();
                 reseau.chargerReseauDepuisFichier(file.getAbsolutePath());
                 updateUI();
                 statusLabel.setText("Réseau chargé depuis " + file.getName());
             } catch (Exception e) {
-                showAlert(Alert.AlertType.ERROR, "Erreur de chargement",
-                        "Impossible de charger le fichier : \n" + e.getMessage());
+                showAlert(Alert.AlertType.ERROR, "Erreur de chargement", "Impossible de charger le fichier : \n" + e.getMessage());
             }
         }
     }
 
     /**
-     * Ouvre une boîte de dialogue pour permettre à l'utilisateur de sauvegarder
-     * la configuration actuelle du réseau dans un fichier texte.
+     * Ouvre une boîte de dialogue pour sauvegarder la configuration actuelle du réseau dans un fichier.
      *
      * @param owner La fenêtre parente qui possède la boîte de dialogue.
      */
@@ -616,8 +561,7 @@ public class GuiMain extends Application {
                 Reseau.sauvegarder(reseau, file.getAbsolutePath());
                 statusLabel.setText("Réseau sauvegardé dans " + file.getName());
             } catch (IOException e) {
-                showAlert(Alert.AlertType.ERROR, "Erreur de sauvegarde",
-                        "Impossible de sauvegarder le fichier : \n" + e.getMessage());
+                showAlert(Alert.AlertType.ERROR, "Erreur de sauvegarde", "Impossible de sauvegarder le fichier : \n" + e.getMessage());
             }
         }
     }

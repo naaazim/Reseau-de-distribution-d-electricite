@@ -13,16 +13,15 @@ public class MaisonFactory {
     private Scanner scanner;
 
     /**
-     * Construit une nouvelle factory de maisons, en initialisant son propre scanner sur l'entrée standard.
+     * Construit une nouvelle factory de maisons.
      */
     public MaisonFactory() {
         this.scanner = new Scanner(System.in);
     }
 
     /**
-     * Guide l'utilisateur pour créer un nouvel objet {@link Maison} via la console.
+     * Crée un nouvel objet {@link Maison} à partir des entrées de l'utilisateur.
      * La méthode demande un nom et un type de consommation, valide l'entrée, et retourne le nouvel objet.
-     * En cas d'entrée invalide (format ou type de consommation inconnu), un message d'erreur est affiché et la méthode retourne null.
      *
      * @return Un nouvel objet {@code Maison} si l'entrée est valide, sinon {@code null}.
      */

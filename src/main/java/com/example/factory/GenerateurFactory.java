@@ -13,6 +13,7 @@ public class GenerateurFactory {
 
     /**
      * Construit une nouvelle factory de générateurs.
+     *
      * @param scanner Le scanner à utiliser pour lire les entrées utilisateur.
      */
     public GenerateurFactory(Scanner scanner) {
@@ -20,9 +21,8 @@ public class GenerateurFactory {
     }
 
     /**
-     * Guide l'utilisateur pour créer un nouvel objet {@link Generateur} via la console.
+     * Crée un nouvel objet {@link Generateur} à partir des entrées de l'utilisateur.
      * La méthode demande un nom et une capacité, valide l'entrée, et retourne le nouvel objet.
-     * En cas d'entrée invalide (format, capacité non numérique ou négative), un message d'erreur est affiché et la méthode retourne null.
      *
      * @return Un nouvel objet {@code Generateur} si l'entrée est valide, sinon {@code null}.
      */

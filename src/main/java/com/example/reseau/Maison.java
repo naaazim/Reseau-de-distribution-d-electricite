@@ -20,6 +20,8 @@ public class Maison {
     }
 
     /**
+     * Retourne le nom de la maison.
+     *
      * @return Le nom de la maison.
      */
     public String getNom() {
@@ -36,6 +38,8 @@ public class Maison {
     }
 
     /**
+     * Retourne le type de consommation de la maison.
+     *
      * @return Le type de consommation de la maison.
      */
     public TypeConso getTypeConso() {
@@ -70,7 +74,9 @@ public class Maison {
     }
 
     /**
-     * @return Une représentation textuelle de la maison, incluant son nom et sa consommation.
+     * Retourne une représentation textuelle de la maison.
+     *
+     * @return Une chaîne de caractères représentant la maison, incluant son nom et sa consommation.
      */
     @Override
     public String toString() {
@@ -78,7 +84,7 @@ public class Maison {
     }
 
     /**
-     * Affiche la représentation textuelle de la maison sur la sortie standard, suivie d'un saut de ligne.
+     * Affiche la représentation textuelle de la maison sur la sortie standard.
      */
     public void afficher() {
         System.out.println(this);

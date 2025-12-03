@@ -10,15 +10,17 @@ public enum TypeConso {
     private final int consommation;
 
     /**
-     * Constructeur privé pour initialiser chaque constante avec sa valeur de consommation.
+     * Constructeur pour initialiser chaque constante avec sa valeur de consommation.
      * @param consommation La consommation en kW.
      */
-    private TypeConso(int consommation) {
+    TypeConso(int consommation) {
         this.consommation = consommation;
     }
 
     /**
-     * @return La valeur de la consommation en kW pour ce type.
+     * Retourne la valeur de la consommation pour ce type.
+     *
+     * @return La valeur de la consommation en kW.
      */
     public int getConsommation() {
         return consommation;
