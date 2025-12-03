@@ -804,6 +804,15 @@ public class Reseau {
         return reseau;
     }
 
+    /**
+     * Calcule le coût hypothétique d'une configuration donnée du réseau.
+     * Utilisé en interne par les algorithmes d'optimisation pour évaluer des solutions potentielles
+     * sans modifier l'état réel du réseau.
+     *
+     * @param reseau Le réseau de référence pour obtenir la valeur de lambda.
+     * @param assign Une carte représentant l'assignation des maisons aux générateurs à évaluer.
+     * @return Le coût calculé pour l'assignation hypothétique.
+     */
     private static double calculerCoutHypothese(Reseau reseau, Map<Generateur, List<Maison>> assign) {
         double disp = 0;
         double surcharge = 0;
@@ -811,9 +820,8 @@ public class Reseau {
         int G = assign.size();
         if (G == 0) return 0;
 
-        // taux moyens
-        double sommeTaux = 0;
         Map<Generateur, Double> taux = new HashMap<>();
+        double sommeTaux = 0;
 
         for (Generateur g : assign.keySet()) {
             int charge = 0;
@@ -834,104 +842,154 @@ public class Reseau {
             for (Maison m : assign.get(g)) {
                 charge += m.getTypeConso().getConsommation();
             }
-            surcharge += Math.max(0, (double)(charge - g.getCapacite()) / g.getCapacite());
+            surcharge += Math.max(0, (double) (charge - g.getCapacite()) / g.getCapacite());
         }
 
         return disp + reseau.getLambda() * surcharge;
     }
-    public static Reseau algoOptimise(Reseau reseau) {
 
-        // Extraire maisons
+    /**
+     * Exécute une heuristique d'optimisation pour trouver une meilleure configuration du réseau.
+     * Cet algorithme tente de minimiser le coût total (dispersion et surcharge) en réassignant
+     * les maisons aux générateurs.
+     *
+     * Il s'agit d'une heuristique qui combine une approche gloutonne avec une recherche locale.
+     * Elle tend à trouver une solution proche de l'optimum, et peut dans certains cas atteindre
+     * la solution optimale, mais sans garantie de toujours y parvenir.
+     *
+     * @param reseau Le réseau initial à optimiser.
+     * @return Le réseau avec une nouvelle configuration potentiellement meilleure.
+     */
+    public static Reseau algoOptimise(Reseau reseau) {
         List<Maison> maisons = new ArrayList<>();
         for (List<Maison> l : reseau.getConnexions().values()) {
             maisons.addAll(l);
         }
-
-        // Extraire générateurs
         List<Generateur> generateurs = new ArrayList<>(reseau.getConnexions().keySet());
 
-        // Structures pour la recherche
-        Map<Generateur, List<Maison>> assignCourante = new HashMap<>();
-        Map<Generateur, Integer> chargeActuelle = new HashMap<>();
+        // PHASE 1 : TRI GLUTTON
+        generateurs.sort((a, b) -> Integer.compare(b.getCapacite(), a.getCapacite()));
+        maisons.sort((a, b) -> Integer.compare(b.getTypeConso().getConsommation(), a.getTypeConso().getConsommation()));
+
+        // PHASE 2 : AFFECTATION GLOUTONNE
+        Map<Generateur, List<Maison>> assign = new LinkedHashMap<>();
+        Map<Generateur, Integer> charge = new LinkedHashMap<>();
 
         for (Generateur g : generateurs) {
-            assignCourante.put(g, new ArrayList<>());
-            chargeActuelle.put(g, 0);
+            assign.put(g, new ArrayList<>());
+            charge.put(g, 0);
         }
 
-        // état optimal
-        Map<Generateur, List<Maison>> meilleureSolution = new HashMap<>();
-        double[] bestCost = { Double.MAX_VALUE };
+        for (Maison m : maisons) {
+            int conso = m.getTypeConso().getConsommation();
+            double bestCost = Double.MAX_VALUE;
+            Generateur bestG = null;
 
-        exploreExact(0, maisons, generateurs, reseau, assignCourante, chargeActuelle, meilleureSolution, bestCost);
+            // Premier passage : respect strict des capacités
+            for (Generateur g : generateurs) {
+                if (charge.get(g) + conso > g.getCapacite()) continue;
 
-        // -------------------------------
-        // APPLICATION DE LA MEILLEURE SOLUTION
-        // -------------------------------
+                assign.get(g).add(m);
+                charge.put(g, charge.get(g) + conso);
 
-        // Supprimer toutes les connexions actuelles
-        for (Generateur g : reseau.getConnexions().keySet()) {
-            List<Maison> copie = new ArrayList<>(reseau.getConnexions().get(g));
-            for (Maison m : copie) {
-                reseau.supprimerConnexion(m.getNom(), g.getNom());
+                double cout = calculerCoutHypothese(reseau, assign);
+                if (cout < bestCost) {
+                    bestCost = cout;
+                    bestG = g;
+                }
+
+                assign.get(g).remove(m);
+                charge.put(g, charge.get(g) - conso);
+            }
+
+            // Si aucun générateur ne respecte la capacité → on autorise surcharge
+            if (bestG == null) {
+                for (Generateur g : generateurs) {
+                    assign.get(g).add(m);
+                    charge.put(g, charge.get(g) + conso);
+
+                    double cout = calculerCoutHypothese(reseau, assign);
+                    if (cout < bestCost) {
+                        bestCost = cout;
+                        bestG = g;
+                    }
+
+                    assign.get(g).remove(m);
+                    charge.put(g, charge.get(g) - conso);
+                }
+            }
+
+            assign.get(bestG).add(m);
+            charge.put(bestG, charge.get(bestG) + conso);
+        }
+
+        // PHASE 3 : AMÉLIORATION LOCALE (recherche locale)
+        boolean amelioration = true;
+        while (amelioration) {
+            amelioration = false;
+            for (Maison m : maisons) {
+                Generateur actuel = null;
+                for (Generateur g : generateurs) {
+                    if (assign.get(g).contains(m)) {
+                        actuel = g;
+                        break;
+                    }
+                }
+
+                if (actuel == null) continue;
+
+                int conso = m.getTypeConso().getConsommation();
+                double bestCost = calculerCoutHypothese(reseau, assign);
+                Generateur bestG = actuel;
+
+                for (Generateur g2 : generateurs) {
+                    if (g2 == actuel) continue;
+                    if (charge.get(g2) + conso > g2.getCapacite()) continue;
+
+                    assign.get(actuel).remove(m);
+                    assign.get(g2).add(m);
+                    charge.put(actuel, charge.get(actuel) - conso);
+                    charge.put(g2, charge.get(g2) + conso);
+
+                    double cout = calculerCoutHypothese(reseau, assign);
+                    if (cout < bestCost) {
+                        bestCost = cout;
+                        bestG = g2;
+                        amelioration = true;
+                    }
+
+                    // Annuler le mouvement pour tester le prochain
+                    assign.get(g2).remove(m);
+                    assign.get(actuel).add(m);
+                    charge.put(g2, charge.get(g2) - conso);
+                    charge.put(actuel, charge.get(actuel) + conso);
+                }
+
+                if (bestG != actuel) {
+                    assign.get(actuel).remove(m);
+                    assign.get(bestG).add(m);
+                    charge.put(actuel, charge.get(actuel) - conso);
+                    charge.put(bestG, charge.get(bestG) + conso);
+                }
             }
         }
 
-        // Appliquer la meilleure affectation
-        for (Generateur g : meilleureSolution.keySet()) {
-            for (Maison m : meilleureSolution.get(g)) {
-                reseau.ajouterConnexion(m.getNom(), g.getNom());
+        // Appliquer la meilleure configuration trouvée au réseau
+        for (Generateur g : reseau.getConnexions().keySet()) {
+            reseau.getConnexions().get(g).clear();
+        }
+        reseau.maisonsNonConnectees.clear();
+        reseau.maisonsNonConnectees.addAll(maisons);
+
+        for (Map.Entry<Generateur, List<Maison>> entry : assign.entrySet()) {
+            for (Maison m : entry.getValue()) {
+                reseau.ajouterConnexion(m.getNom(), entry.getKey().getNom());
             }
         }
 
         return reseau;
     }
-    private static void exploreExact(
-            int index,
-            List<Maison> maisons,
-            List<Generateur> generateurs,
-            Reseau reseau,
-            Map<Generateur, List<Maison>> assignCourante,
-            Map<Generateur, Integer> chargeActuelle,
-            Map<Generateur, List<Maison>> meilleureSolution,
-            double[] bestCost
-    ) {
-        if (index == maisons.size()) {
-            double cout = calculerCoutHypothese(reseau, assignCourante);
 
-            if (cout < bestCost[0]) {
-                bestCost[0] = cout;
-                meilleureSolution.clear();
-
-                for (Generateur g : assignCourante.keySet()) {
-                    meilleureSolution.put(g, new ArrayList<>(assignCourante.get(g)));
-                }
-            }
-            return;
-        }
-
-        Maison m = maisons.get(index);
-        int conso = m.getTypeConso().getConsommation();
-
-        for (Generateur g : generateurs) {
-
-            int newCharge = chargeActuelle.get(g) + conso;
-
-            // Pruning surcharge
-            if (newCharge > g.getCapacite()) continue;
-
-            // Affecter
-            assignCourante.get(g).add(m);
-            chargeActuelle.put(g, newCharge);
-
-            exploreExact(index + 1, maisons, generateurs, reseau,
-                    assignCourante, chargeActuelle, meilleureSolution, bestCost);
-
-            // Backtrack
-            assignCourante.get(g).remove(m);
-            chargeActuelle.put(g, newCharge - conso);
-        }
-    }
 
 
     /**
