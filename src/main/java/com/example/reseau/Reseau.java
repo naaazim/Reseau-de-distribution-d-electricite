@@ -187,7 +187,8 @@ public class Reseau {
 
         connexions.get(g).add(m);
         maisonsNonConnectees.remove(m);
-        System.out.println("La connexion entre la maison " + nomMaison + " et le générateur " + nomGenerateur + " a été créée.");
+        System.out.println(
+                "La connexion entre la maison " + nomMaison + " et le générateur " + nomGenerateur + " a été créée.");
     }
 
     /**
@@ -635,12 +636,14 @@ public class Reseau {
     }
 
     /**
-     * Analyse une chaîne de caractères pour en extraire les informations d'un générateur
+     * Analyse une chaîne de caractères pour en extraire les informations d'un
+     * générateur
      * et l'ajouter au réseau.
      * Le format attendu est "generateur(nom,capacité)".
      *
      * @param ligne La chaîne à analyser.
-     * @throws IllegalArgumentException si le format est invalide ou si la capacité n'est pas un nombre.
+     * @throws IllegalArgumentException si le format est invalide ou si la capacité
+     *                                  n'est pas un nombre.
      */
     private void parseGenerateur(String ligne) {
         ligne = ligne.substring("generateur(".length(), ligne.length() - 1);
@@ -664,12 +667,14 @@ public class Reseau {
     }
 
     /**
-     * Analyse une chaîne de caractères pour en extraire les informations d'une maison
+     * Analyse une chaîne de caractères pour en extraire les informations d'une
+     * maison
      * et l'ajouter au réseau.
      * Le format attendu est "maison(nom,TYPE_CONSO)".
      *
      * @param ligne La chaîne à analyser.
-     * @throws IllegalArgumentException si le format est invalide ou si le type de consommation est inconnu.
+     * @throws IllegalArgumentException si le format est invalide ou si le type de
+     *                                  consommation est inconnu.
      */
     private void parseMaison(String ligne) {
         ligne = ligne.substring("maison(".length(), ligne.length() - 1);
@@ -694,11 +699,13 @@ public class Reseau {
     }
 
     /**
-     * Analyse une chaîne de caractères pour créer une connexion entre une maison et un générateur.
+     * Analyse une chaîne de caractères pour créer une connexion entre une maison et
+     * un générateur.
      * Le format attendu est "connexion(nomMaison,nomGenerateur)".
      *
      * @param ligne La chaîne à analyser.
-     * @throws IllegalArgumentException si le format est invalide ou si les entités n'existent pas.
+     * @throws IllegalArgumentException si le format est invalide ou si les entités
+     *                                  n'existent pas.
      */
     private void parseConnexion(String ligne) {
         ligne = ligne.substring("connexion(".length(), ligne.length() - 1);
@@ -797,71 +804,135 @@ public class Reseau {
         return reseau;
     }
 
-    /**
-     * Exécute un algorithme d'optimisation avancé basé sur une recherche locale
-     * de type "meilleure amélioration" (best improvement).
-     * L'algorithme parcourt toutes les maisons et évalue le coût de leur
-     * déplacement vers chaque autre générateur. La maison est déplacée vers le
-     * générateur qui offre la plus grande réduction de coût.
-     * Le processus est répété jusqu'à ce qu'un passage complet sur toutes les
-     * maisons ne produise plus aucune amélioration, garantissant ainsi un minimum local.
-     *
-     * @param reseau Le réseau de départ à optimiser.
-     * @return Le réseau optimisé, potentiellement dans un état de coût minimal local.
-     */
+    private static double calculerCoutHypothese(Reseau reseau, Map<Generateur, List<Maison>> assign) {
+        double disp = 0;
+        double surcharge = 0;
+
+        int G = assign.size();
+        if (G == 0) return 0;
+
+        // taux moyens
+        double sommeTaux = 0;
+        Map<Generateur, Double> taux = new HashMap<>();
+
+        for (Generateur g : assign.keySet()) {
+            int charge = 0;
+            for (Maison m : assign.get(g)) {
+                charge += m.getTypeConso().getConsommation();
+            }
+            double u = (g.getCapacite() == 0) ? 0 : (double) charge / g.getCapacite();
+            taux.put(g, u);
+            sommeTaux += u;
+        }
+
+        double moyenne = sommeTaux / G;
+
+        for (Generateur g : taux.keySet()) {
+            disp += Math.abs(taux.get(g) - moyenne);
+
+            int charge = 0;
+            for (Maison m : assign.get(g)) {
+                charge += m.getTypeConso().getConsommation();
+            }
+            surcharge += Math.max(0, (double)(charge - g.getCapacite()) / g.getCapacite());
+        }
+
+        return disp + reseau.getLambda() * surcharge;
+    }
     public static Reseau algoOptimise(Reseau reseau) {
 
-        boolean ameliorationTrouvee = true;
+        // Extraire maisons
+        List<Maison> maisons = new ArrayList<>();
+        for (List<Maison> l : reseau.getConnexions().values()) {
+            maisons.addAll(l);
+        }
 
-        while (ameliorationTrouvee) {
-            ameliorationTrouvee = false;
+        // Extraire générateurs
+        List<Generateur> generateurs = new ArrayList<>(reseau.getConnexions().keySet());
 
-            List<Maison> toutesLesMaison = new ArrayList<>();
-            for (List<Maison> l : reseau.getConnexions().values()) {
-                toutesLesMaison.addAll(l);
+        // Structures pour la recherche
+        Map<Generateur, List<Maison>> assignCourante = new HashMap<>();
+        Map<Generateur, Integer> chargeActuelle = new HashMap<>();
+
+        for (Generateur g : generateurs) {
+            assignCourante.put(g, new ArrayList<>());
+            chargeActuelle.put(g, 0);
+        }
+
+        // état optimal
+        Map<Generateur, List<Maison>> meilleureSolution = new HashMap<>();
+        double[] bestCost = { Double.MAX_VALUE };
+
+        exploreExact(0, maisons, generateurs, reseau, assignCourante, chargeActuelle, meilleureSolution, bestCost);
+
+        // -------------------------------
+        // APPLICATION DE LA MEILLEURE SOLUTION
+        // -------------------------------
+
+        // Supprimer toutes les connexions actuelles
+        for (Generateur g : reseau.getConnexions().keySet()) {
+            List<Maison> copie = new ArrayList<>(reseau.getConnexions().get(g));
+            for (Maison m : copie) {
+                reseau.supprimerConnexion(m.getNom(), g.getNom());
             }
+        }
 
-            for (Maison maison : toutesLesMaison) {
-
-                Generateur ancienGenerateur = null;
-                for (Generateur generateur : reseau.getConnexions().keySet()) {
-                    if (reseau.getConnexions().get(generateur).contains(maison)) {
-                        ancienGenerateur = generateur;
-                        break;
-                    }
-                }
-
-                if (ancienGenerateur == null) {
-                    continue;
-                }
-
-                for (Generateur generateur : reseau.getConnexions().keySet()) {
-                    if (!generateur.equals(ancienGenerateur)) {
-
-                        double ancienCout = reseau.calculerCout();
-
-                        reseau.modifierConnexion(maison.getNom(),
-                                ancienGenerateur.getNom(),
-                                maison.getNom(),
-                                generateur.getNom());
-
-                        double nouveauCout = reseau.calculerCout();
-                        if (nouveauCout > ancienCout) {
-                            reseau.modifierConnexion(maison.getNom(),
-                                    generateur.getNom(),
-                                    maison.getNom(),
-                                    ancienGenerateur.getNom());
-                        } else {
-                            ancienGenerateur = generateur;
-                            ameliorationTrouvee = true;
-                        }
-                    }
-                }
+        // Appliquer la meilleure affectation
+        for (Generateur g : meilleureSolution.keySet()) {
+            for (Maison m : meilleureSolution.get(g)) {
+                reseau.ajouterConnexion(m.getNom(), g.getNom());
             }
         }
 
         return reseau;
     }
+    private static void exploreExact(
+            int index,
+            List<Maison> maisons,
+            List<Generateur> generateurs,
+            Reseau reseau,
+            Map<Generateur, List<Maison>> assignCourante,
+            Map<Generateur, Integer> chargeActuelle,
+            Map<Generateur, List<Maison>> meilleureSolution,
+            double[] bestCost
+    ) {
+        if (index == maisons.size()) {
+            double cout = calculerCoutHypothese(reseau, assignCourante);
+
+            if (cout < bestCost[0]) {
+                bestCost[0] = cout;
+                meilleureSolution.clear();
+
+                for (Generateur g : assignCourante.keySet()) {
+                    meilleureSolution.put(g, new ArrayList<>(assignCourante.get(g)));
+                }
+            }
+            return;
+        }
+
+        Maison m = maisons.get(index);
+        int conso = m.getTypeConso().getConsommation();
+
+        for (Generateur g : generateurs) {
+
+            int newCharge = chargeActuelle.get(g) + conso;
+
+            // Pruning surcharge
+            if (newCharge > g.getCapacite()) continue;
+
+            // Affecter
+            assignCourante.get(g).add(m);
+            chargeActuelle.put(g, newCharge);
+
+            exploreExact(index + 1, maisons, generateurs, reseau,
+                    assignCourante, chargeActuelle, meilleureSolution, bestCost);
+
+            // Backtrack
+            assignCourante.get(g).remove(m);
+            chargeActuelle.put(g, newCharge - conso);
+        }
+    }
+
 
     /**
      * Sauvegarde l'état actuel du réseau dans un fichier texte.
