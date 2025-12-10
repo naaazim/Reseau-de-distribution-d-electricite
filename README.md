@@ -9,8 +9,6 @@ Parties 1 & 2
 - FERHANI Ales Amazigh
 - BENOUFELLA Mohamed Yacine
 
-**Groupe :** Jeudi Matin
-
 ---
 
 ## 📋 Présentation
