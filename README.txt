@@ -1,5 +1,5 @@
 ================================================================================
-PROJET PAA - RESEAU DE DISTRIBUTION D'ELECTRICITE
+PROJET PAA - RÉSEAU DE DISTRIBUTION D'ÉLECTRICITÉ
 
 Licence 3 Informatique - Université Paris Cité
 Parties 1 & 2
@@ -12,7 +12,7 @@ Auteurs :
 Groupe : Jeudi Matin
 
 ================================================================================
-PRESENTATION
+PRÉSENTATION
 ================================================================================
 
 Ce projet modélise et optimise un réseau de distribution d'électricité.
@@ -30,7 +30,7 @@ Fonctionnalités :
   - Interface graphique (bonus) lancée via Maven
 
 ================================================================================
-EXECUTION
+EXÉCUTION
 ================================================================================
 
 Le point d'entrée principal du programme est : com.example.Main
@@ -59,7 +59,7 @@ Avantages :
   - Pas besoin d'ajouter JavaFX au module-path manuellement
 
 ================================================================================
-FORMAT DU FICHIER RESEAU
+FORMAT DU FICHIER RÉSEAU
 ================================================================================
 
 Ordre obligatoire : générateurs -> maisons -> connexions
@@ -77,7 +77,7 @@ Contraintes :
   - L'ordre global doit être respecté
 
 ================================================================================
-FONCTIONNALITES IMPLEMENTEES
+FONCTIONNALITÉS IMPLEMENTÉES
 ================================================================================
 
 Partie 1 :
@@ -152,7 +152,7 @@ Malgré ces limites, elle représente le meilleur compromis entre :
   - fiabilité.
 
 ================================================================================
-STRUCTURE COMPLETE DU PROJET
+STRUCTURE COMPLÈTE DU PROJET
 ================================================================================
 
 .

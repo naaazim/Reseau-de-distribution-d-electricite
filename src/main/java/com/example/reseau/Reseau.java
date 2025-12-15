@@ -849,16 +849,25 @@ public class Reseau {
     }
 
     /**
-     * Exécute une heuristique d'optimisation pour trouver une meilleure configuration du réseau.
-     * Cet algorithme tente de minimiser le coût total (dispersion et surcharge) en réassignant
+     * Exécute une heuristique d'optimisation pour améliorer la configuration du réseau.
+     * L'objectif est de réduire le coût total (dispersion + surcharge) en réaffectant
      * les maisons aux générateurs.
      *
-     * Il s'agit d'une heuristique qui combine une approche gloutonne avec une recherche locale.
-     * Elle tend à trouver une solution proche de l'optimum, et peut dans certains cas atteindre
-     * la solution optimale, mais sans garantie de toujours y parvenir.
+     * L'algorithme fonctionne en trois étapes :
+     *  1. Tri des maisons et des générateurs afin de créer un ordre de traitement stable.
+     *  2. Phase d'affectation gloutonne : chaque maison est placée sur le générateur
+     *     qui provoque le plus faible coût, en respectant d'abord les capacités puis,
+     *     si nécessaire, en autorisant une surcharge contrôlée.
+     *  3. Phase de recherche locale : pour chaque maison, l’algorithme teste son
+     *     déplacement vers d'autres générateurs si cela permet de réduire davantage
+     *     le coût. Les améliorations sont appliquées de manière itérative.
+     *
+     * Cette combinaison permet d'obtenir une solution souvent très proche de l'optimum.
+     * Dans certains cas, l'algorithme atteint la solution optimale, mais aucune garantie
+     * n'existe pour tous les réseaux possibles, car il s'agit d'une heuristique.
      *
      * @param reseau Le réseau initial à optimiser.
-     * @return Le réseau avec une nouvelle configuration potentiellement meilleure.
+     * @return Le réseau avec une configuration potentiellement améliorée.
      */
     public static Reseau algoOptimise(Reseau reseau) {
         List<Maison> maisons = new ArrayList<>();
@@ -867,7 +876,7 @@ public class Reseau {
         }
         List<Generateur> generateurs = new ArrayList<>(reseau.getConnexions().keySet());
 
-        // PHASE 1 : TRI GLUTTON
+        // PHASE 1 : TRI
         generateurs.sort((a, b) -> Integer.compare(b.getCapacite(), a.getCapacite()));
         maisons.sort((a, b) -> Integer.compare(b.getTypeConso().getConsommation(), a.getTypeConso().getConsommation()));
 
