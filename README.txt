@@ -1,5 +1,6 @@
 ================================================================================
-PROJET PAA - RÉSEAU DE DISTRIBUTION D'ÉLECTRICITÉ
+PROJET PAA - RESEAU DE DISTRIBUTION D'ELECTRICITE
+================================================================================
 
 Licence 3 Informatique - Université Paris Cité
 Parties 1 & 2
@@ -12,7 +13,7 @@ Auteurs :
 Groupe : Jeudi Matin
 
 ================================================================================
-PRÉSENTATION
+PRESENTATION
 ================================================================================
 
 Ce projet modélise et optimise un réseau de distribution d'électricité.
@@ -30,7 +31,7 @@ Fonctionnalités :
   - Interface graphique (bonus) lancée via Maven
 
 ================================================================================
-EXÉCUTION
+EXECUTION
 ================================================================================
 
 Le point d'entrée principal du programme est : com.example.Main
@@ -49,7 +50,7 @@ java -cp target/classes com.example.Main
 
 Lancer l'interface graphique JavaFX (méthode universelle)
 ----------------------------------------------------------
-Pour exécuter la GUI sur n'importe quel IDE ou terminal, Maven doit gérer 
+Pour exécuter la GUI sur n'importe quel IDE ou terminal, Maven doit gérer
 JavaFX. Depuis le répertoire racine du projet, exécuter simplement :
 
 mvn clean javafx:run
@@ -59,7 +60,7 @@ Avantages :
   - Pas besoin d'ajouter JavaFX au module-path manuellement
 
 ================================================================================
-FORMAT DU FICHIER RÉSEAU
+FORMAT DU FICHIER RESEAU
 ================================================================================
 
 Ordre obligatoire : générateurs -> maisons -> connexions
@@ -77,7 +78,7 @@ Contraintes :
   - L'ordre global doit être respecté
 
 ================================================================================
-FONCTIONNALITÉS IMPLEMENTÉES
+FONCTIONNALITES IMPLEMENTEES
 ================================================================================
 
 Partie 1 :
@@ -101,58 +102,73 @@ Bonus :
 ALGORITHME D'OPTIMISATION : JUSTIFICATION DU CHOIX
 ================================================================================
 
+Nature du problème :
+
 Le problème d'affectation des maisons aux générateurs, sous contraintes de
-capacités et avec une fonction de coût non linéaire, est NP-difficile.
+capacités et avec une fonction de coût combinant équilibre et surcharge, est un
+problème NP-difficile.
 
-Cela signifie que :
-  - le nombre de configurations possibles augmente de manière exponentielle,
-  - un algorithme exact garantissant toujours la solution optimale devient
-    rapidement inutilisable dès que le nombre de maisons dépasse une vingtaine.
+Le nombre de configurations possibles croît de manière exponentielle avec le
+nombre de maisons et de générateurs, ce qui rend une exploration exhaustive
+naïve rapidement impossible.
 
-Nous avons étudié plusieurs alternatives :
-  - Algorithmes exacts (exhaustifs)
-      -> garantissent l'optimalité mais explosent en temps sur les grandes
-         instances.
-  - Méthodes stochastiques (algorithmes génétiques)
-      -> nécessitent beaucoup de réglages et ne garantissent pas de meilleures
-         performances compte tenu de la taille du problème.
-  - Heuristiques gloutonnes simples
-      -> rapides, mais trop limitées : elles produisent de mauvaises solutions
-         sur des réseaux déséquilibrés.
+Choix de l'algorithme
 
-Le choix final s'est porté sur une heuristique hybride, pour les raisons
-suivantes :
+Pour cette raison, nous avons implémenté un algorithme exact de type
+Branch & Bound, qui permet de :
 
-1) Rapidité d'exécution
-   L'algorithme fournit une solution en temps raisonnable, même pour des
-   réseaux comportant de nombreux générateurs et maisons.
+  - garantir la solution optimale pour l'instance considérée ;
+  - réduire drastiquement l'espace de recherche grâce à l'élagage ;
+  - rester exploitable sur des réseaux de taille raisonnable.
 
-2) Amélioration réelle du coût
-   L'heuristique construit une première répartition puis améliore la solution
-   en testant localement des déplacements pertinents de maisons.
+Principe de fonctionnement
 
-3) Qualité des solutions obtenues
-   Dans certains cas, l'algorithme atteint effectivement la solution optimale.
-   Dans d'autres, il produit une solution très proche de l'optimum, ce qui est
-   acceptable dans un contexte où le calcul doit rester rapide.
+L'algorithme procède de la manière suivante :
 
-4) Stabilité et simplicité d'utilisation
-   L'algorithme ne dépend pas de paramètres complexes et se comporte de manière
-   prévisible sur toutes les configurations testées.
+  1. Toutes les maisons (connectées ou non) sont collectées.
 
-Limites connues :
-  - L'heuristique peut se bloquer dans un optimum local.
-  - Elle ne garantit pas l'optimum global.
-  - La qualité dépend de la structure du réseau.
+  2. Les maisons sont triées par consommation décroissante afin de traiter
+     en priorité les affectations les plus contraignantes.
 
-Malgré ces limites, elle représente le meilleur compromis entre :
-  - exactitude,
-  - rapidité,
-  - simplicité,
-  - fiabilité.
+  3. Les générateurs sont triés par capacité décroissante.
+
+  4. Une exploration récursive teste les affectations possibles maison par
+     maison.
+
+  5. À chaque étape, une borne inférieure du coût est évaluée :
+     - si cette borne est supérieure au meilleur coût connu, la branche est
+       abandonnée.
+
+  6. Lorsqu'une affectation complète est trouvée avec un coût inférieur au
+     meilleur connu, elle devient la nouvelle solution optimale.
+
+Garanties apportées
+
+  - L'algorithme explore l'espace des solutions de manière complète, sous
+    réserve de l'élagage.
+  - La meilleure solution retournée est optimalement minimale selon la
+    fonction de coût définie.
+  - Le résultat est déterministe : une même instance produit toujours la
+    même solution optimale.
+
+Performances et limites
+
+  - Le pire cas reste exponentiel (car le problème est NP-difficile).
+  - Grâce au tri heuristique et à l'élagage, l'algorithme est très efficace
+    en pratique pour les tailles de réseaux attendues dans le cadre du projet.
+  - L'algorithme est particulièrement adapté aux réseaux de taille petite à
+    moyenne, où l'optimalité est recherchée.
+
+Résumé
+
+Ce choix permet d'obtenir un excellent compromis entre :
+  - Exactitude (solution optimale garantie),
+  - Performance (élagage efficace),
+  - Lisibilité du code,
+  - Robustesse face aux configurations complexes.
 
 ================================================================================
-STRUCTURE COMPLÈTE DU PROJET
+STRUCTURE COMPLETE DU PROJET
 ================================================================================
 
 .
@@ -219,7 +235,9 @@ Classes principales :
 NOTES
 ================================================================================
 
-- L'heuristique peut rester bloquée en optimum local
-- Les erreurs de fichier sont détectées et affichées ligne par ligne
+- La résolution automatique repose sur un algorithme exact de type
+  Branch & Bound.
+- Toutes les contraintes du problème sont strictement respectées.
+- Les erreurs de fichiers sont détectées et signalées avec précision.
 
 ================================================================================
