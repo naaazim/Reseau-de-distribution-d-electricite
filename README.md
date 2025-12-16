@@ -3,7 +3,7 @@
 **Licence 3 Informatique – Université Paris Cité**  
 Parties 1 & 2
 
-## 👥 Auteurs
+##  Auteurs
 
 - HAMIA Abderahmane Nazim
 - FERHANI Ales Amazigh
@@ -13,7 +13,7 @@ Parties 1 & 2
 
 ---
 
-## 📋 Présentation
+##  Présentation
 
 Ce projet modélise et optimise un réseau de distribution d'électricité.
 
@@ -33,7 +33,7 @@ Ce projet modélise et optimise un réseau de distribution d'électricité.
 
 ---
 
-## 🚀 Exécution
+##  Exécution
 
 Le point d'entrée principal du programme est : `com.example.Main`  
 Les fichiers compilés se trouvent dans `target/classes/`.
@@ -91,7 +91,7 @@ connexion(gen1,maison1).
 
 ---
 
-## ✨ Fonctionnalités implémentées
+##  Fonctionnalités implémentées
 
 ### Partie 1
 
@@ -115,7 +115,7 @@ connexion(gen1,maison1).
 
 ---
 
-## 🧠 Algorithme d'optimisation
+##  Algorithme d'optimisation
 
 ### Heuristique de type Hill Climbing
 
@@ -196,7 +196,7 @@ connexion(gen1,maison1).
 
 ---
 
-## 📝 Notes
+##  Notes
 
 - L'heuristique peut rester bloquée en optimum local
 - La GUI fonctionne uniquement via Maven : `mvn clean javafx:run`
@@ -205,7 +205,7 @@ connexion(gen1,maison1).
 
 ---
 
-## 📦 Technologies utilisées
+## Technologies utilisées
 
 - **Java** (version compatible avec JavaFX)
 - **Maven** (gestion des dépendances et build)
@@ -214,7 +214,7 @@ connexion(gen1,maison1).
 
 ---
 
-## 📜 Licence
+## Licence
 
 Projet réalisé dans le cadre du module :  
 **Programmation avancée et application — L3 Informatique**  
