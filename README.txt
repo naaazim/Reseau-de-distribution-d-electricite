@@ -105,67 +105,92 @@ ALGORITHME D'OPTIMISATION : JUSTIFICATION DU CHOIX
 Nature du problème :
 
 Le problème d'affectation des maisons aux générateurs, sous contraintes de
-capacités et avec une fonction de coût combinant équilibre et surcharge, est un
-problème NP-difficile.
+capacités et avec une fonction de coût combinant équilibre des charges et
+pénalisation des surcharges, est un problème NP-difficile.
 
 Le nombre de configurations possibles croît de manière exponentielle avec le
-nombre de maisons et de générateurs, ce qui rend une exploration exhaustive
-naïve rapidement impossible.
+nombre de maisons et de générateurs. Une recherche exhaustive devient donc
+rapidement irréaliste, même pour des tailles de réseaux modérées.
 
-Choix de l'algorithme
+Choix de l'algorithme :
 
-Pour cette raison, nous avons implémenté un algorithme exact de type
-Branch & Bound, qui permet de :
+Afin de garantir des temps de calcul raisonnables tout en produisant des
+configurations de bonne qualité, nous avons choisi une approche heuristique
+plutôt qu'un algorithme exact.
 
-  - garantir la solution optimale pour l'instance considérée ;
-  - réduire drastiquement l'espace de recherche grâce à l'élagage ;
-  - rester exploitable sur des réseaux de taille raisonnable.
+L'algorithme implémenté combine :
+  - une phase gloutonne guidée par la fonction de coût,
+  - suivie d'une phase de recherche locale par améliorations successives.
 
-Principe de fonctionnement
+Ce choix permet d'obtenir un excellent compromis entre performance,
+qualité des solutions et simplicité de mise en œuvre.
 
-L'algorithme procède de la manière suivante :
+Principe de fonctionnement :
 
-  1. Toutes les maisons (connectées ou non) sont collectées.
+L'algorithme d'optimisation fonctionne en trois phases principales :
 
-  2. Les maisons sont triées par consommation décroissante afin de traiter
-     en priorité les affectations les plus contraignantes.
+1. Prétraitement et tri :
+   - Les générateurs sont triés par capacité décroissante.
+   - Les maisons sont triées par consommation décroissante.
+   Ce tri permet de traiter en priorité les éléments les plus contraignants.
 
-  3. Les générateurs sont triés par capacité décroissante.
+2. Affectation gloutonne initiale :
+   - Chaque maison est affectée au générateur qui minimise le coût global
+     du réseau après affectation.
+   - L'algorithme privilégie en priorité les générateurs capables d'accueillir
+     la maison sans dépasser leur capacité.
+   - Si aucune affectation sans surcharge n'est possible, une surcharge
+     contrôlée est autorisée afin de garantir une solution complète.
 
-  4. Une exploration récursive teste les affectations possibles maison par
-     maison.
+3. Amélioration par recherche locale :
+   - Une phase d'optimisation locale est ensuite appliquée.
+   - Pour chaque maison, l'algorithme teste son déplacement vers d'autres
+     générateurs.
+   - Un déplacement est conservé uniquement s'il réduit le coût total
+     (dispersion + surcharge pondérée).
+   - Cette phase est répétée jusqu'à stabilisation, c'est-à-dire lorsqu'aucune
+     amélioration supplémentaire n'est possible.
 
-  5. À chaque étape, une borne inférieure du coût est évaluée :
-     - si cette borne est supérieure au meilleur coût connu, la branche est
-       abandonnée.
+Fonction de coût :
 
-  6. Lorsqu'une affectation complète est trouvée avec un coût inférieur au
-     meilleur connu, elle devient la nouvelle solution optimale.
+La qualité d'une configuration est évaluée à l'aide de la fonction de coût :
 
-Garanties apportées
+  Coût = Dispersion + lambda × Surcharge
 
-  - L'algorithme explore l'espace des solutions de manière complète, sous
-    réserve de l'élagage.
-  - La meilleure solution retournée est optimalement minimale selon la
-    fonction de coût définie.
-  - Le résultat est déterministe : une même instance produit toujours la
-    même solution optimale.
+où :
+  - la dispersion mesure l'équilibre des taux d'utilisation des générateurs,
+  - la surcharge pénalise les dépassements de capacité,
+  - lambda est un paramètre réglable contrôlant l'importance de la surcharge.
 
-Performances et limites
+Garanties et propriétés :
 
-  - Le pire cas reste exponentiel (car le problème est NP-difficile).
-  - Grâce au tri heuristique et à l'élagage, l'algorithme est très efficace
-    en pratique pour les tailles de réseaux attendues dans le cadre du projet.
-  - L'algorithme est particulièrement adapté aux réseaux de taille petite à
-    moyenne, où l'optimalité est recherchée.
+  - L'algorithme garantit toujours une solution valide dans laquelle
+    toutes les maisons sont affectées à un générateur.
+  - Le coût du réseau ne peut qu'être amélioré ou rester stable au cours
+    de la phase de recherche locale.
+  - Le résultat est déterministe : une même instance et une même valeur
+    de lambda produisent toujours la même configuration finale.
 
-Résumé
+Performances et limites :
 
-Ce choix permet d'obtenir un excellent compromis entre :
-  - Exactitude (solution optimale garantie),
-  - Performance (élagage efficace),
-  - Lisibilité du code,
-  - Robustesse face aux configurations complexes.
+  - L'algorithme ne garantit pas l'optimalité globale, le problème étant
+    NP-difficile.
+  - En contrepartie, les temps de calcul restent faibles, même pour des
+    réseaux de taille significative.
+  - En pratique, les solutions obtenues sont très proches de l'optimum
+    et nettement meilleures que les configurations initiales.
+
+Résumé :
+
+Ce choix algorithmique permet d'obtenir :
+  - des temps d'exécution maîtrisés,
+  - une implémentation claire et robuste,
+  - une qualité de solution élevée,
+  - une adaptation naturelle aux contraintes du problème réel.
+
+Il constitue un compromis efficace entre optimisation et faisabilité
+dans le cadre du projet PAA.
+
 
 ================================================================================
 STRUCTURE COMPLETE DU PROJET
@@ -235,9 +260,15 @@ Classes principales :
 NOTES
 ================================================================================
 
-- La résolution automatique repose sur un algorithme exact de type
-  Branch & Bound.
-- Toutes les contraintes du problème sont strictement respectées.
-- Les erreurs de fichiers sont détectées et signalées avec précision.
+- La résolution automatique du réseau repose sur une approche heuristique
+  adaptée à un problème NP-difficile.
+
+- L’algorithme garantit une configuration valide : toutes les maisons
+  sont connectées à un générateur.
+
+- Le coût du réseau combine l’équilibrage des charges et la pénalisation
+  des surcharges via le paramètre λ.
+
+- Les erreurs de fichiers et les incohérences sont détectées et signalées.
 
 ================================================================================

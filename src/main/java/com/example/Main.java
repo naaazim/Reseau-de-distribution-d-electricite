@@ -246,7 +246,6 @@ public class Main {
                 System.out.println("4) supprimer une connexion existante entre une maison et un générateur");
                 System.out.println("5) Quitter et passer au menu calcul (si réseau valide)");
                 System.out.print("Votre choix : ");
-
                 int choix = askForInt(scanner);
                 if (choix == -1) {
                     continue; // Réaffiche le menu si l'entrée est invalide
